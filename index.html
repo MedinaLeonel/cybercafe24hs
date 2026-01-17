@@ -12,6 +12,12 @@
 
 <body id="index-page">
     <div class="app-container" style="justify-content: center; align-items: center; min-height: 100vh;">
+        <div id="system-status" class="status-bar hidden">
+            <span id="connection-status" class="status online">✓ En línea</span>
+            <span id="sync-status" class="status hidden">✓ Sincronizado</span>
+            <span id="pending-count" class="status hidden">0 pendientes</span>
+            <button id="force-sync" class="btn-small hidden">↻ Sincronizar</button>
+        </div>
 
         <!-- NEON SIGN -->
         <!-- NEON SIGN (NEW) -->
@@ -48,8 +54,45 @@
 
     </div>
 
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="config.local.js" onerror="console.log('No local config found')"></script>
+    <script src="js/logger.js"></script>
+    <script src="js/cyberUtils.js"></script>
+    <script src="js/syncQueue.js"></script>
+    <script src="js/apiClient.js"></script>
+    <script src="js/migration.js"></script>
     <script src="js/main.js"></script>
     <script src="js/auth.js"></script>
+
+    <script>
+        // Generar ID de sesión para logging
+        window.sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+        // Inicializar sistema de estado
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializar UI de estado si existe
+            if (window.SystemStatusUI) {
+                new SystemStatusUI();
+            }
+
+            // Verificar conexión inicial
+            window.addEventListener('online', () => {
+                if (window.syncQueue) {
+                    window.syncQueue.processQueue(window.apiClient.supabase); // Pasar supabase client
+                }
+            });
+
+            // Log inicial
+            if (window.CyberLogger) {
+                CyberLogger.info('Aplicación iniciada', {
+                    sessionId: window.sessionId,
+                    online: navigator.onLine,
+                    url: window.location.href
+                });
+            }
+        });
+    </script>
 </body>
 
 </html>

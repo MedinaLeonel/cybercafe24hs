@@ -1,19 +1,50 @@
 /**
- * Módulo de Autenticación
+ * Módulo de Autenticación con Supabase
  * Botón Login/Logout
  * Modal Login/Registro
- * Manejo de JWT en LocalStorage
+ * Manejo de Sesión
  */
 
-const AUTH_API = "http://localhost:3000/api/auth";
+// NOTA: Estas constantes deberían venir de variables de entorno o ser inyectadas.
+// Al no tener un bundler configurado para leer .env en runtime en el navegador sin proceso de build explícito,
+// usamos las globales o fallbacks (el usuario deberá configurar esto).
+// NOTA: Configuración obtenida de CyberConfig
+const sbConfig = window.CyberConfig ? window.CyberConfig.getSupabaseConfig() : { url: '', anonKey: '' };
+const SUPABASE_URL = sbConfig.url;
+const SUPABASE_KEY = sbConfig.anonKey;
+
+// Inicializamos el cliente aquí si no existe
+const supabaseAuth = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 const LoginState = {
     modal: null,
     overlay: null,
     btnOpen: null,
-    init: function () {
+    user: null,
+
+    init: async function () {
         this.createUserInterface();
-        this.checkAuthStatus();
+
+        try {
+            // Verificar sesión actual
+            const user = await window.apiClient.getCurrentUser();
+            if (user) {
+                this.updateAuthStatus(user);
+            }
+
+            // Suscribirse a cambios de auth
+            if (window.apiClient && window.apiClient.supabase) {
+                window.apiClient.supabase.auth.onAuthStateChange((event, session) => {
+                    if (session) {
+                        this.updateAuthStatus(session.user);
+                    } else {
+                        this.updateAuthStatus(null);
+                    }
+                });
+            }
+        } catch (error) {
+            CyberLogger.error('Error inicializando AuthState', error);
+        }
     },
 
     /**
@@ -60,13 +91,12 @@ const LoginState = {
 
                     <!-- REGISTER FORM -->
                     <form id="registerForm" class="hidden">
-                        <input name="username" class="input-terminal" type="text" placeholder="USUARIO" required />
                         <input name="email" class="input-terminal" type="email" placeholder="EMAIL" required />
                         <input name="password" class="input-terminal" type="password" placeholder="PASSWORD" required />
                         <button type="submit" class="btn btn-primary" style="width: 100%">REGISTRARSE</button>
                     </form>
 
-                    <div id="auth-msg" class="text-center text-mono mt-2" style="font-size: 0.8rem; min-height: 1.2em;"></div>
+                    <div id="auth-msg" class="text-center text-mono mt-2" style="min-height: 1.2em;"></div>
                 </div>
             </div>
             `;
@@ -85,19 +115,19 @@ const LoginState = {
     },
 
     /**
-     * Verificar si hay token y actualizar UI
+     * Actualizar UI basado en estado de auth
      */
-    checkAuthStatus: function () {
-        const token = localStorage.getItem('token');
-        const username = localStorage.getItem('username');
+    updateAuthStatus: function (user) {
+        this.user = user;
         const btn = document.getElementById('auth-btn');
         const display = document.getElementById('user-display');
 
-        if (token && username) {
+        if (user) {
             // Logueado
             btn.textContent = 'LOGOUT';
-            // btn.classList.add('text-brand'); 
-            display.textContent = `HOLA, ${username.toUpperCase()}`;
+            // Extract username from email simply
+            const username = user.email ? user.email.split('@')[0].toUpperCase() : 'USER';
+            display.textContent = `HOLA, ${username}`;
             display.classList.remove('hidden');
         } else {
             // No logueado
@@ -111,14 +141,19 @@ const LoginState = {
     /**
      * Click en botón header (Login o Logout)
      */
-    handleAuthClick: function () {
-        const token = localStorage.getItem('token');
-        if (token) {
+    handleAuthClick: async function () {
+        if (this.user) {
             // Logout
-            localStorage.removeItem('token');
-            localStorage.removeItem('username');
-            alert('Sesión cerrada correctamente.');
-            window.location.reload();
+            try {
+                const { error } = await window.apiClient.supabase.auth.signOut();
+                if (error) throw error;
+
+                CyberUtils.showMessage('Sesión cerrada correctamente.', 'info');
+                setTimeout(() => window.location.reload(), 500);
+            } catch (error) {
+                CyberLogger.error('Error cerrando sesión', error);
+                alert('Error cerrando sesión: ' + error.message);
+            }
         } else {
             // Abrir modal
             this.toggleModal(true);
@@ -159,80 +194,77 @@ const LoginState = {
         document.getElementById('auth-msg').textContent = '';
     },
 
-    /**
-     * Helper para peticiones Auth
-     */
-    authRequest: async function (endpoint, data) {
+    handleLogin: async function (e) {
+        e.preventDefault();
         const msg = document.getElementById('auth-msg');
         msg.textContent = 'Procesando...';
         msg.style.color = 'var(--text-dim)';
 
+        const formData = new FormData(e.target);
+        const email = formData.get('email');
+        const password = formData.get('password');
+
         try {
-            const res = await fetch(`${AUTH_API}/${endpoint}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data)
+            const { data, error } = await window.apiClient.supabase.auth.signInWithPassword({
+                email,
+                password
             });
 
-            const json = await res.json();
+            if (error) throw error;
 
-            if (!res.ok) {
-                throw new Error(json.error || 'Error en autenticación');
-            }
+            msg.textContent = '¡BIEVENIDO!';
+            msg.style.color = 'var(--neon-success)';
 
-            return json;
+            // Éxito
+            setTimeout(() => this.toggleModal(false), 1000);
 
         } catch (error) {
-            msg.textContent = error.message;
+            let errorText = error.message;
+            if (error.message === 'Invalid login credentials') errorText = 'Credenciales inválidas';
+
+            msg.textContent = errorText;
             msg.style.color = 'var(--neon-brand)';
-            throw error;
-        }
-    },
-
-    handleLogin: async function (e) {
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target));
-
-        try {
-            const res = await this.authRequest('login', data);
-            this.postAuthSuccess(res);
-        } catch (err) {
-            // Error handled in authRequest
+            CyberLogger.warn('Login fallido', error);
         }
     },
 
     handleRegister: async function (e) {
         e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target));
+        const msg = document.getElementById('auth-msg');
+        msg.textContent = 'Creando cuenta...';
+        msg.style.color = 'var(--text-dim)';
+
+        const formData = new FormData(e.target);
+        const email = formData.get('email');
+        const password = formData.get('password');
 
         try {
-            const res = await this.authRequest('register', data);
-            this.postAuthSuccess(res);
-        } catch (err) {
-            // Error handled in authRequest
+            const { data, error } = await window.apiClient.supabase.auth.signUp({
+                email,
+                password
+            });
+
+            if (error) throw error;
+
+            msg.textContent = '¡Cuenta creada! Verifica tu email.';
+            msg.style.color = 'var(--neon-success)';
+
+            setTimeout(() => this.toggleModal(false), 2000);
+
+        } catch (error) {
+            msg.textContent = error.message;
+            msg.style.color = 'var(--neon-brand)';
+            CyberLogger.warn('Registro fallido', error);
         }
-    },
-
-    postAuthSuccess: function (response) {
-        // Guardar datos
-        localStorage.setItem('token', response.token);
-        localStorage.setItem('username', response.user.username);
-
-        // Feedback
-        const msg = document.getElementById('auth-msg');
-        msg.textContent = '¡BIEVENIDO!';
-        msg.style.color = 'var(--neon-success)';
-
-        setTimeout(() => {
-            this.toggleModal(false);
-            this.checkAuthStatus();
-            // Recargar para actualizar UI de servicios si es necesario
-            window.location.reload();
-        }, 1000);
     }
 };
 
 // Inicializar al cargar
 document.addEventListener('DOMContentLoaded', () => {
-    LoginState.init();
+    // Wait for apiClient to be ready
+    if (window.apiClient) {
+        LoginState.init();
+    } else {
+        setTimeout(() => LoginState.init(), 500);
+    }
 });

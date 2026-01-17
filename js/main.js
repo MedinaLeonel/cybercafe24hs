@@ -1,115 +1,124 @@
 // ============================================
 // CYBERCAFÉ 24HS - Lógica de Estado y Rituales
-// Arquitectura: Separación por feature con localStorage
+// Arquitectura: Cliente API (Supabase) + Fallback Offline
 // ============================================
 
 /* 
   ESTRUCTURA DEL ARCHIVO:
-  1. Módulo de Utilidades Comunes
+  1. Módulo de Estado Global (UI Indicators)
   2. Módulo de Presencia (presencia.html)
-  3. Módulo de Rituales (rituales.html)
+  3. Módulo de Rituales/Servicios (rituales.html)
   4. Módulo de Archivo (archivo.html)
-  5. Inicialización Condicional por Página
+  5. Módulo de Torneos (torneos.html)
+  6. Inicialización Condicional por Página
 */
 
 // ====================
-// 1. MÓDULO DE UTILIDADES
+// 1. MÓDULO DE ESTADO GLOBAL
 // ====================
-const CyberUtils = {
-    /**
-     * Obtiene o establece datos en localStorage con namespace
-     * @param {string} key - Clave del dato
-     * @param {any} value - Valor a guardar (opcional)
-     * @returns {any} Valor recuperado o null
-     */
-    storage: function (key, value = undefined) {
-        const fullKey = `cybercafe24hs_${key}`;
+// ====================
+// 1. MÓDULO DE ESTADO GLOBAL (SystemStatusUI)
+// ====================
+// La lógica de UI se maneja en la clase SystemStatusUI definida abajo
+// y se inicializa desde el script de index.html o al final de este archivo si se prefiere.
 
-        if (value === undefined) {
-            // GET: Recuperar dato
-            const item = localStorage.getItem(fullKey);
-            try {
-                return item ? JSON.parse(item) : null;
-            } catch (e) {
-                return item;
-            }
-        } else if (value === null) {
-            // DELETE: Eliminar dato
-            localStorage.removeItem(fullKey);
-            return null;
-        } else {
-            // SET: Guardar dato
-            const toStore = typeof value === 'string' ? value : JSON.stringify(value);
-            localStorage.setItem(fullKey, toStore);
-            return value;
-        }
-    },
+class SystemStatusUI {
+    constructor() {
+        this.els = {
+            container: document.getElementById('system-status'),
+            connection: document.getElementById('connection-status'),
+            sync: document.getElementById('sync-status'),
+            pending: document.getElementById('pending-count'),
+            forceBtn: document.getElementById('force-sync')
+        };
 
-    /**
-     * Muestra un mensaje de estado temporal (feedback visual)
-     * @param {string} message - Texto a mostrar
-     * @param {string} type - 'success' o 'info'
-     * @param {HTMLElement} container - Contenedor donde mostrar
-     */
-    showMessage: function (message, type = 'info', container = document.body) {
-        // Crear elemento de mensaje
-        const messageEl = document.createElement('div');
-        messageEl.className = `state-message state-${type}`;
-        messageEl.textContent = message;
+        if (!this.els.container) return; // Si no existe el UI, no hacer nada
+        this.els.container.classList.remove('hidden');
 
-        // Insertar al inicio del contenedor
-        container.insertBefore(messageEl, container.firstChild);
+        this.initListeners();
+        this.updateConnectionStatus(navigator.onLine);
+        this.updatePendingCount(); // Check inicial
+    }
 
-        // Auto-eliminar después de 4 segundos
-        setTimeout(() => {
-            if (messageEl.parentNode) {
-                messageEl.style.opacity = '0';
-                messageEl.style.transition = 'opacity 0.5s ease';
+    initListeners() {
+        // Red
+        window.addEventListener('online', () => this.updateConnectionStatus(true));
+        window.addEventListener('offline', () => this.updateConnectionStatus(false));
 
-                setTimeout(() => {
-                    if (messageEl.parentNode) {
-                        messageEl.parentNode.removeChild(messageEl);
-                    }
-                }, 500);
-            }
-        }, 4000);
-    },
-
-    /**
-     * Formatea fecha para mostrar en el archivo
-     * @param {Date} date - Fecha a formatear
-     * @returns {string} Fecha formateada
-     */
-    formatDate: function (date = new Date()) {
-        return date.toLocaleDateString('es-ES', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
+        // Sync Queue Events
+        window.addEventListener('cyber:queue-update', (e) => {
+            this.updatePendingCount(e.detail.count);
         });
-    },
 
-    /**
-     * HOOK PARA BACKEND FUTURO (comentado pero listo)
-     * Reemplazar localStorage con llamadas API cuando exista backend
-     */
-    // async syncWithBackend(key, data) {
-    //   try {
-    //     const response = await fetch(`/api/${key}`, {
-    //       method: 'POST',
-    //       headers: { 'Content-Type': 'application/json' },
-    //       body: JSON.stringify(data)
-    //     });
-    //     return await response.json();
-    //   } catch (error) {
-    //     console.error('Error sincronizando con backend:', error);
-    //     // Fallback a localStorage
-    //     return this.storage(key, data);
-    //   }
-    // }
-};
+        window.addEventListener('cyber:sync-state', (e) => {
+            this.updateSyncStatus(e.detail.syncing);
+        });
+
+        // Botón forzar
+        if (this.els.forceBtn) {
+            this.els.forceBtn.addEventListener('click', () => {
+                const originalText = this.els.forceBtn.textContent;
+                this.els.forceBtn.textContent = 'Enviando...';
+
+                if (window.apiClient) {
+                    window.apiClient.forceSync().then(() => {
+                        this.els.forceBtn.textContent = originalText;
+                    }).catch(() => {
+                        this.els.forceBtn.textContent = 'Error';
+                        setTimeout(() => this.els.forceBtn.textContent = originalText, 2000);
+                    });
+                }
+            });
+        }
+    }
+
+    updateConnectionStatus(isOnline) {
+        if (!this.els.connection) return;
+        if (isOnline) {
+            this.els.connection.textContent = '✓ En línea';
+            this.els.connection.className = 'status online';
+            // Trigger sync checks when back online handled by syncQueue listeners usually
+        } else {
+            this.els.connection.textContent = '⚠ Sin conexión';
+            this.els.connection.className = 'status offline';
+        }
+    }
+
+    updateSyncStatus(isSyncing) {
+        if (!this.els.sync) return;
+        if (isSyncing) {
+            this.els.sync.classList.remove('hidden');
+            this.els.sync.className = 'status syncing';
+            this.els.sync.innerHTML = '<span class="blink">↻</span> Sincronizando...';
+        } else {
+            this.els.sync.textContent = '✓ Sincronizado';
+            this.els.sync.className = 'status online';
+            setTimeout(() => {
+                this.els.sync.classList.add('hidden');
+            }, 2000);
+        }
+    }
+
+    async updatePendingCount(count) {
+        if (count === undefined && window.syncQueue) {
+            count = await window.syncQueue.getPendingCount();
+        }
+
+        if (!this.els.pending) return;
+
+        if (count > 0) {
+            this.els.pending.textContent = `${count} pendientes`;
+            this.els.pending.classList.remove('hidden');
+            this.els.forceBtn.classList.remove('hidden');
+        } else {
+            this.els.pending.classList.add('hidden');
+            this.els.forceBtn.classList.add('hidden');
+        }
+    }
+}
+
+// Exponer globalmente para que index.html lo use
+window.SystemStatusUI = SystemStatusUI;
 
 // ====================
 // 2. MÓDULO DE PRESENCIA
@@ -132,14 +141,40 @@ const PresenceModule = {
     /**
      * Inicializar módulo de presencia
      */
-    init: function () {
-        // Cargar estado desde localStorage
+    init: async function () {
+        CyberLogger.info('Inicializando Módulo de Presencia/Log...');
+
+        // Optimistic UI
         const saved = CyberUtils.storage(this.config.storageKey);
         if (saved) {
             this.state = { ...this.state, ...saved };
         }
-
         this.updateDisplay();
+
+        // Sync remoto con manejo de errores
+        try {
+            window.triggerSyncStatus && window.triggerSyncStatus(true);
+            constlogs = await window.apiClient.getPresenceLogs();
+            if (logs && Array.isArray(logs)) {
+                this.state.count = logs.length;
+
+                // Sync log del día
+                if (logs.length > 0) {
+                    const lastLog = logs[0];
+                    const today = new Date().toISOString().split('T')[0];
+                    if (lastLog.fecha === today) {
+                        this.state.lastMark = new Date().toDateString();
+                    }
+                }
+                this.updateDisplay();
+                CyberLogger.debug('Logs de presencia sincronizados', { count: this.state.count });
+            }
+        } catch (e) {
+            CyberLogger.warn('Offline/Error obteniendo logs de presencia', e);
+        } finally {
+            window.triggerSyncStatus && window.triggerSyncStatus(false);
+        }
+
         this.setupEventListeners();
     },
 
@@ -155,61 +190,78 @@ const PresenceModule = {
         }
 
         if (messageInput) {
-            messageInput.addEventListener('input', (e) => {
-                this.state.todayMessage = e.target.value.substring(0, 100); // Limitar longitud
-            });
+            // DEBOUNCE APLICADO AQUÍ
+            const debouncedInput = CyberUtils.debounce((val) => {
+                this.state.todayMessage = val.substring(0, 100);
+                CyberLogger.debug('Mensaje de presencia actualizado (local)');
+            }, 300);
+
+            messageInput.addEventListener('input', (e) => debouncedInput(e.target.value));
         }
     },
 
     /**
      * Marcar presencia para hoy
      */
-    markPresence: function () {
+    markPresence: async function () {
         const now = new Date();
         const today = now.toDateString();
+        const todayISO = now.toISOString().split('T')[0];
+        const timeISO = now.toLocaleTimeString();
 
-        // Verificar si ya marcó hoy (cooldown)
-        if (this.state.lastMark === today) {
-            CyberUtils.showMessage(
-                'Ya marcaste tu presencia hoy. Vuelve mañana.',
-                'info',
-                document.querySelector('.presence-container')
-            );
+        // 1. Verificar autenticación (NUEVO)
+        const user = await window.apiClient.getCurrentUser();
+        if (!user) {
+            CyberUtils.showMessage('Debes INICIAR SESIÓN para marcar presencia.', 'warning');
+            if (window.sessionManager) window.sessionManager.openModal('login');
             return;
         }
 
-        // Actualizar estado
-        this.state.count = Math.min(this.state.count + 1, this.config.maxCounter);
-        this.state.lastMark = today;
+        // Verificar si ya marcó hoy (cooldown local)
+        if (this.state.lastMark === today) {
+            CyberUtils.showMessage('Ya marcaste tu presencia hoy. Vuelve mañana.', 'info');
+            return;
+        }
 
-        // Guardar en localStorage
-        CyberUtils.storage(this.config.storageKey, this.state);
+        window.triggerSyncStatus && window.triggerSyncStatus(true);
+        try {
+            // Intentar guardar en API
+            await window.apiClient.addPresenceLog({
+                fecha: todayISO,
+                hora: timeISO,
+                actividad: this.state.todayMessage || 'Visita regular'
+            });
 
-        // Mostrar feedback
-        CyberUtils.showMessage(
-            `Presencia confirmada. Estuviste presente. Esta noche somos ${this.state.count}.`,
-            'success',
-            document.querySelector('.presence-container')
-        );
+            // Si éxito, actualizar estado local
+            this.state.count = this.state.count + 1;
+            this.state.lastMark = today;
+            CyberUtils.storage(this.config.storageKey, this.state);
 
-        // Actualizar visualización
-        this.updateDisplay();
+            CyberUtils.showMessage('Presencia confirmada en la red.', 'success');
+            this.updateDisplay();
 
-        // HOOK PARA BACKEND FUTURO:
-        // CyberUtils.syncWithBackend('presence', this.state);
+        } catch (error) {
+            // Manejo de errores específico
+            if (error.message.includes('401') || error.message.includes('autenticado')) {
+                CyberUtils.showMessage('Login requerido para marcar presencia.', 'warning');
+            } else {
+                CyberUtils.showMessage('Error de conexión. Intenta más tarde.', 'error');
+            }
+            CyberLogger.error('Error marcando presencia', error);
+        } finally {
+            window.triggerSyncStatus && window.triggerSyncStatus(false);
+        }
     },
 
     /**
      * Actualizar elementos en la interfaz
      */
     updateDisplay: function () {
-        // Actualizar contador
         const counterEl = document.getElementById('presenceCounter');
         if (counterEl) {
             counterEl.textContent = this.state.count.toString().padStart(4, '0');
         }
 
-        // Actualizar mensaje de estado
         const statusEl = document.getElementById('presenceStatus');
         if (statusEl) {
             if (this.state.lastMark === new Date().toDateString()) {
@@ -221,22 +273,15 @@ const PresenceModule = {
             }
         }
 
-        // Restaurar mensaje si existe
         const messageInput = document.getElementById('presenceMessage');
-        if (messageInput && this.state.todayMessage) {
+        if (messageInput && this.state.todayMessage && messageInput.value !== this.state.todayMessage) {
             messageInput.value = this.state.todayMessage;
         }
     }
 };
 
 // ====================
-// 3. MÓDULO DE RITUALES
-// ====================
-// ====================
-// 3. MÓDULO DE SERVICIOS (CARTELERA)
-// ====================
-// ====================
-// 3. MÓDULO DE SERVICIOS (CARTELERA)
+// 3. MÓDULO DE SERVICIOS
 // ====================
 const ServiciosModule = {
     // Configuración
@@ -249,90 +294,93 @@ const ServiciosModule = {
         storageKey: 'services_data_v2'
     },
 
-    // Estado inicial
     state: {
         servicios: []
     },
 
-    /**
-     * Inicializar módulo
-     */
-    init: function () {
-        console.log('Inicializando Módulo de Servicios...');
-        this.loadServicios();
+    init: async function () {
+        CyberLogger.info('Inicializando Módulo de Servicios...');
+        this.loadServiciosLocal();
         this.renderServicios();
         this.setupEventListeners();
+
+        // Cargar remoto (Lazy/Async)
+        try {
+            window.triggerSyncStatus && window.triggerSyncStatus(true);
+            const servicios = await window.apiClient.getServicios();
+            if (servicios) {
+                this.state.servicios = servicios.map(s => ({
+                    id: s.id,
+                    titulo: s.nombre,
+                    fecha: s.fecha_programada,
+                    descripcion: s.notas,
+                    tipo: 'evento',
+                    enlace: '#'
+                }));
+                this.renderServicios();
+                CyberUtils.storage(this.config.storageKey, this.state.servicios);
+            }
+        } catch (e) {
+            CyberLogger.info('Offline: Mostrando servicios cacheados');
+        } finally {
+            window.triggerSyncStatus && window.triggerSyncStatus(false);
+        }
     },
 
-    /**
-     * Cargar servicios desde LocalStorage
-     */
-    loadServicios: function () {
+    loadServiciosLocal: function () {
         const saved = CyberUtils.storage(this.config.storageKey);
         if (saved && Array.isArray(saved)) {
             this.state.servicios = saved;
-        } else {
-            // Inicializar vacío para que solo aparezcan los creados por el usuario
-            this.state.servicios = [];
-            this.saveServicios(this.state.servicios);
         }
     },
 
-    /**
-     * Obtener lista de servicios (Hook para fetch futuro)
-     */
-    getServicios: function () {
-        return this.state.servicios;
-    },
-
-    /**
-     * Guardar servicios (Local -> Futuro API)
-     */
-    saveServicios: function (servicios) {
-        this.state.servicios = servicios;
-        CyberUtils.storage(this.config.storageKey, servicios);
-    },
-
-    /**
-     * Crear un nuevo servicio
-     */
-    createServicio: function (data) {
-        // Validaciones básicas
-        if (!data.titulo || !data.descripcion) {
-            alert('Faltan campos obligatorios');
+    createServicio: async function (data) {
+        // 1. Verificar auth
+        const user = await window.apiClient.getCurrentUser();
+        if (!user) {
+            CyberUtils.showMessage('Debes estar autorizado para crear servicios.', 'warning');
+            if (window.sessionManager) window.sessionManager.openModal('login');
             return;
         }
 
-        const newService = {
-            id: 'srv_' + Date.now().toString(36),
-            titulo: data.titulo,
-            descripcion: data.descripcion,
-            enlace: data.enlace || '#',
-            tipo: data.tipo || 'evento',
-            fecha: data.fecha || new Date().toISOString().split('T')[0],
-            estado: 'activo'
-        };
+        if (!data.titulo || !data.descripcion) {
+            CyberUtils.showMessage('Faltan campos obligatorios', 'warning');
+            return;
+        }
 
-        const updatedList = [newService, ...this.state.servicios];
-        this.saveServicios(updatedList);
-        this.renderServicios();
+        window.triggerSyncStatus && window.triggerSyncStatus(true);
+        try {
+            await window.apiClient.createServicio(data);
 
-        // Limpiar y ocultar formulario después de crear
-        document.getElementById(this.config.formId).reset();
-        this.toggleForm(false);
+            const servicios = await window.apiClient.getServicios();
+            this.state.servicios = servicios.map(s => ({
+                id: s.id,
+                titulo: s.nombre,
+                fecha: s.fecha_programada,
+                descripcion: s.notas,
+                tipo: 'evento',
+                enlace: '#'
+            }));
 
-        CyberUtils.showMessage('Servicio publicado correctamente.', 'success', document.querySelector('.main-content'));
+            this.renderServicios();
+            document.getElementById(this.config.formId).reset();
+            this.toggleForm(false);
+            CyberUtils.showMessage('Servicio publicado en la red.', 'success');
+
+        } catch (error) {
+            CyberUtils.showMessage('Error creando servicio', 'error');
+            CyberLogger.error(error);
+        } finally {
+            window.triggerSyncStatus && window.triggerSyncStatus(false);
+        }
     },
 
-    /**
-     * Renderizar lista de servicios
-     */
     renderServicios: function () {
         const container = document.getElementById(this.config.containerId);
         if (!container) return;
 
         container.innerHTML = '';
-        const lista = this.getServicios();
+        const lista = this.state.servicios;
 
         if (lista.length === 0) {
             container.innerHTML = '<div class="text-center text-dim text-mono">// SIN SERVICIOS ACTIVOS //</div>';
@@ -340,7 +388,6 @@ const ServiciosModule = {
         }
 
         lista.forEach(servicio => {
-            // Determinar estilos según tipo
             let typeColor = 'var(--text-dim)';
             if (servicio.tipo === 'pelicula') typeColor = 'var(--neon-info)';
             if (servicio.tipo === 'evento') typeColor = 'var(--neon-brand)';
@@ -354,7 +401,7 @@ const ServiciosModule = {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; border-bottom: 1px dashed #333; padding-bottom: 0.5rem;">
                     <div>
                         <h3 class="text-main" style="margin: 0; font-size: 1.1rem;">${servicio.titulo}</h3>
-                        <span class="text-mono" style="color: ${typeColor}; font-size: 0.75rem;">[ ${servicio.tipo.toUpperCase()} ]</span>
+                        <span class="text-mono" style="color: ${typeColor}; font-size: 0.75rem;">[ ${servicio.tipo ? servicio.tipo.toUpperCase() : 'GENERAL'} ]</span>
                     </div>
                     <div class="text-right">
                         <div class="text-mono text-success" style="font-size: 0.7rem;">● ACTIVO</div>
@@ -365,7 +412,7 @@ const ServiciosModule = {
                 <p class="text-dim text-mono" style="font-size: 0.9rem; margin-bottom: 1rem;">${servicio.descripcion}</p>
                 
                 <div class="text-right">
-                    <a href="${servicio.enlace}" target="_blank" class="btn btn-small" style="text-decoration: none; display: inline-block;">
+                    <a href="${servicio.enlace || '#'}" target="_blank" class="btn btn-small" style="text-decoration: none; display: inline-block;">
                         > ACCEDER
                     </a>
                 </div>
@@ -374,40 +421,24 @@ const ServiciosModule = {
         });
     },
 
-    /**
-     * Mostrar/Ocultar formulario
-     */
     toggleForm: function (show) {
         const formContainer = document.getElementById(this.config.formContainerId);
         if (formContainer) {
-            if (show) {
-                formContainer.classList.remove('hidden');
-            } else {
-                formContainer.classList.add('hidden');
-            }
+            if (show) formContainer.classList.remove('hidden');
+            else formContainer.classList.add('hidden');
         }
     },
 
-    /**
-     * Configurar Listeners
-     */
     setupEventListeners: function () {
-        // Toggle Form
         const btnShow = document.getElementById(this.config.toggleBtnId);
         const btnCancel = document.getElementById(this.config.cancelBtnId);
 
-        if (btnShow) {
-            btnShow.addEventListener('click', () => this.toggleForm(true));
-        }
+        if (btnShow) btnShow.addEventListener('click', () => this.toggleForm(true));
+        if (btnCancel) btnCancel.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.toggleForm(false);
+        });
 
-        if (btnCancel) {
-            btnCancel.addEventListener('click', (e) => {
-                e.preventDefault(); // Evita submits accidentales
-                this.toggleForm(false);
-            });
-        }
-
-        // Handle Submit
         const form = document.getElementById(this.config.formId);
         if (form) {
             form.addEventListener('submit', (e) => {
@@ -439,11 +470,7 @@ const ArchiveModule = {
         phrases: []
     },
 
-    /**
-     * Inicializar módulo de archivo
-     */
     init: function () {
-        // Cargar frases
         const saved = CyberUtils.storage(this.config.storageKey);
         if (saved && Array.isArray(saved.phrases)) {
             this.state.phrases = saved.phrases;
@@ -453,9 +480,6 @@ const ArchiveModule = {
         this.setupEventListeners();
     },
 
-    /**
-     * Configurar listeners
-     */
     setupEventListeners: function () {
         const form = document.getElementById('archiveForm');
         const input = document.getElementById('phraseInput');
@@ -471,54 +495,31 @@ const ArchiveModule = {
         }
     },
 
-    /**
-     * Agregar frase al archivo
-     * @param {string} text - Texto de la frase
-     */
     addPhrase: function (text) {
-        // Crear objeto de frase
         const phrase = {
             id: Date.now().toString(36) + Math.random().toString(36).substr(2),
-            text: text.substring(0, 200), // Limitar longitud
+            text: text.substring(0, 200),
             date: CyberUtils.formatDate(),
             timestamp: new Date().toISOString()
         };
 
-        // Agregar al inicio del array
         this.state.phrases.unshift(phrase);
 
-        // Limitar cantidad máxima
         if (this.state.phrases.length > this.config.maxPhrases) {
             this.state.phrases = this.state.phrases.slice(0, this.config.maxPhrases);
         }
 
-        // Guardar
         CyberUtils.storage(this.config.storageKey, this.state);
-
-        // Feedback
-        CyberUtils.showMessage(
-            'Frase añadida al archivo local.',
-            'success',
-            document.querySelector('.archive-container')
-        );
-
-        // Actualizar visualización
+        CyberUtils.showMessage('Frase guardada en memoria.', 'success', document.querySelector('.archive-container'));
         this.renderArchive();
-
-        // HOOK PARA BACKEND FUTURO:
-        // CyberUtils.syncWithBackend('archive/phrases', phrase);
     },
 
-    /**
-     * Renderizar lista de frases
-     */
     renderArchive: function () {
         const listEl = document.getElementById('archiveList');
         const emptyEl = document.getElementById('emptyArchive');
 
         if (!listEl || !emptyEl) return;
 
-        // Mostrar/ocultar mensaje de vacío
         if (this.state.phrases.length === 0) {
             emptyEl.style.display = 'block';
             listEl.innerHTML = '';
@@ -527,65 +528,106 @@ const ArchiveModule = {
 
         emptyEl.style.display = 'none';
 
-        // Generar HTML de frases
         let phrasesHTML = '';
-
         this.state.phrases.forEach(phrase => {
             phrasesHTML += `
         <li class="archive-item">
           <div class="text-mono">${phrase.text}</div>
-          <div class="text-mono" style="font-size: 0.7rem; color: var(--color-text-secondary); margin-top: 0.25rem;">
+          <div class="text-mono text-dim" style="font-size: 0.7rem; margin-top: 0.25rem;">
             ${phrase.date}
           </div>
         </li>
       `;
         });
-
         listEl.innerHTML = phrasesHTML;
     }
 };
 
 // ====================
-// 5. INICIALIZACIÓN GLOBAL
+// 5. MÓDULO DE TORNEOS
+// ====================
+const TorneosModule = {
+    init: async function () {
+        CyberLogger.info('Inicializando Módulo de Torneos...');
+
+        const container = document.getElementById('torneos-list');
+        if (!container) return; // Si no hay contenedor, salir
+
+        try {
+            window.triggerSyncStatus && window.triggerSyncStatus(true);
+            const torneos = await window.apiClient.getTorneos();
+
+            if (torneos && torneos.length > 0) {
+                container.innerHTML = ''; // Limpiar placeholder
+                torneos.forEach(t => {
+                    const row = document.createElement('div');
+                    row.className = 'log-entry';
+                    row.innerHTML = `
+                        <div class="log-status">
+                            <span class="text-success">● OPEN</span>
+                        </div>
+                        <div class="log-info">
+                            <span class="log-title">${t.juego}</span>
+                            <span class="log-meta">JUGADORES: ${(t.participantes || []).length} | FECHA: ${t.fecha}</span>
+                        </div>
+                        <div class="text-right">
+                            <button class="btn btn-small" onclick="TorneosModule.joinTorneo('${t.id}')">UNIRSE</button>
+                        </div>
+                    `;
+                    container.appendChild(row);
+                });
+            } else {
+                container.innerHTML = '<div class="text-center text-dim text-mono">// NO HAY TORNEOS ACTIVOS //</div>';
+            }
+
+        } catch (e) {
+            CyberLogger.warn('Error cargando torneos', e);
+            container.innerHTML = '<div class="text-center text-dim text-mono">// ERROR DE CONEXIÓN //</div>';
+        } finally {
+            window.triggerSyncStatus && window.triggerSyncStatus(false);
+        }
+    },
+
+    joinTorneo: async function (id) {
+        const user = await window.apiClient.getCurrentUser();
+        if (!user) {
+            CyberUtils.showMessage('Login requerido para inscribirse.', 'warning');
+            if (window.sessionManager) window.sessionManager.openModal('login');
+            return;
+        }
+        CyberUtils.showMessage('Inscripción registrada (Simulado)', 'success');
+        // Implementar lógica real de update
+    }
+};
+
+
+// ====================
+// 6. INICIALIZACIÓN GLOBAL
 // ====================
 document.addEventListener('DOMContentLoaded', function () {
-    console.log('Cybercafé 24hs - Estado cargado');
+    // CyberLogger.init(); // Logger now initializes itself or via window
+    // StatusModule.init(); // DEPRECATED in favor of SystemStatusUI in index.html
 
-    // Identificar página actual por URL o body class
+    // Identificar ruta
     const path = window.location.pathname;
-    const bodyId = document.body.id;
+    // Soporte para detección básica en file:// o servidor
+    const isPage = (name) => path.includes(name) || document.body.id === name.replace('.html', '-page');
 
-    // Inicializar módulos según la página
-    if (path.includes('presencia.html') || bodyId === 'presencia-page') {
-        PresenceModule.init();
-        console.log('Módulo de presencia activado');
-    }
+    if (isPage('presencia.html')) PresenceModule.init();
+    if (isPage('rituales.html')) ServiciosModule.init();
+    if (isPage('torneos.html')) TorneosModule.init();
+    if (isPage('archivo.html')) ArchiveModule.init();
 
-    // if (path.includes('rituales.html') || bodyId === 'rituales-page') {
-    //     ServiciosModule.init();
-    //     console.log('Módulo de servicios activado');
-    // }
-
-    if (path.includes('archivo.html') || bodyId === 'archivo-page') {
-        ArchiveModule.init();
-        console.log('Módulo de archivo activado');
-    }
-
-    // Inicializar navegación activa
     initNavigation();
 });
 
-/**
- * Manejar navegación activa
- */
 function initNavigation() {
     const currentPage = window.location.pathname.split('/').pop() || 'index.html';
     const navLinks = document.querySelectorAll('.nav-link');
 
     navLinks.forEach(link => {
         const linkPage = link.getAttribute('href');
-        if (linkPage === currentPage ||
-            (currentPage === '' && linkPage === 'index.html')) {
+        if (linkPage === currentPage || (currentPage === '' && linkPage === 'index.html')) {
             link.classList.add('active');
         } else {
             link.classList.remove('active');
