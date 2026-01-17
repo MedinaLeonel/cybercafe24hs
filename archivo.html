@@ -13,10 +13,8 @@
 <body id="archivo-page">
     <div class="app-container">
         <header class="site-header">
-            <h1 class="site-title" style="text-align: center;"><a href="index.html"
-                    style="text-decoration: none; color: inherit;">CYBERCAFÉ 24HS</a></h1>
+            <a href="index.html" class="site-title text-mono">CYBERCAFÉ 24HS</a>
             <nav class="main-nav">
-                <a href="index.html" class="nav-link">Inicio</a>
                 <a href="presencia.html" class="nav-link">Presencia</a>
                 <a href="rituales.html" class="nav-link">Rituales</a>
                 <a href="torneos.html" class="nav-link">Torneos</a>
@@ -25,32 +23,32 @@
         </header>
 
         <main class="main-content">
-            <div class="section-card">
-                <h2 class="neon-title-red mb-2 text-center">ARCHIVO DE MEMORIA</h2>
+            <div class="panel-terminal">
+                <h2 class="text-brand mb-2 text-center">BANCO DE MEMORIA LOCAL</h2>
 
-                <form id="archiveForm" class="mb-2" style="border-bottom: 1px solid #333; padding-bottom: 2rem;">
-                    <label for="phraseInput" class="text-mono text-dim mb-1" style="display: block;">> INPUT
-                        DATOS:</label>
-                    <input type="text" id="phraseInput" class="form-input" placeholder="Escribe aquí..." maxlength="200"
-                        required>
-                    <button type="submit" class="btn btn-primary" style="width: 100%;">[ GUARDAR EN DISCO LOCAL
-                        ]</button>
-                    <p class="text-mono text-dim mt-1" style="font-size: 0.75rem; text-align: center;">
-                        * Esto queda como memoria de tu navegador (LocalStorage).
-                    </p>
+                <form id="archiveForm" style="margin-bottom: 3rem;">
+                    <input type="text" id="phraseInput" class="input-terminal" placeholder="> INPUT DATA..."
+                        maxlength="200" autocomplete="off" required>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <p class="text-mono text-dim" style="font-size: 0.75rem;">
+                            * Persistencia: LocalStorage
+                        </p>
+                        <button type="submit" class="btn btn-primary">[ GUARDAR ]</button>
+                    </div>
                 </form>
 
                 <div id="emptyArchive" class="text-center text-dim text-mono py-2">
-                    <span style="opacity: 0.5;">// ARCHIVO VACÍO //</span>
+                    <span style="opacity: 0.5;">// MEMORY EMPTY //</span>
                 </div>
 
-                <ul id="archiveList" class="archive-list">
+                <ul id="archiveList" class="archive-list" style="list-style: none; padding: 0;">
                     <!-- JS Content -->
                 </ul>
             </div>
 
             <div class="text-right">
-                <button id="clearArchiveBtn" class="btn" style="border-color: #333; color: #555; font-size: 0.7rem;">
+                <button id="clearArchiveBtn" class="btn btn-small" style="border-color: #333; color: #555;">
                     [ FORMAT C: ]
                 </button>
             </div>

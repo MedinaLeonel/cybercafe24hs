@@ -91,15 +91,15 @@ const TournamentsModule = {
 
         if (btnShowCreate) {
             btnShowCreate.addEventListener('click', () => {
-                createSection.style.display = 'block';
-                btnShowCreate.style.display = 'none';
+                createSection.classList.remove('hidden');
+                btnShowCreate.classList.add('hidden');
             });
         }
 
         if (btnCancel) {
             btnCancel.addEventListener('click', () => {
-                createSection.style.display = 'none';
-                btnShowCreate.style.display = 'inline-block';
+                createSection.classList.add('hidden');
+                btnShowCreate.classList.remove('hidden');
             });
         }
 
@@ -131,10 +131,10 @@ const TournamentsModule = {
         const modal = document.getElementById('tournamentDetailModal');
         if (closeModal && modal) {
             closeModal.addEventListener('click', () => {
-                modal.style.display = 'none';
+                modal.classList.add('hidden');
             });
             modal.addEventListener('click', (e) => {
-                if (e.target === modal) modal.style.display = 'none';
+                if (e.target === modal) modal.classList.add('hidden');
             });
         }
     },
@@ -166,8 +166,8 @@ const TournamentsModule = {
 
         // Reset UI
         document.getElementById('createTournamentForm').reset();
-        document.getElementById('createTournamentSection').style.display = 'none';
-        document.getElementById('btnShowCreate').style.display = 'inline-block';
+        document.getElementById('createTournamentSection').classList.add('hidden');
+        document.getElementById('btnShowCreate').classList.remove('hidden');
 
         this.renderList();
 
@@ -191,56 +191,46 @@ const TournamentsModule = {
         });
 
         if (torneosFiltrados.length === 0) {
-            grid.innerHTML = '<div class="text-center text-dim mt-2">No se encontraron torneos en este sector.</div>';
+            grid.innerHTML = '<div class="text-center text-dim mt-2 text-mono">// SIN REGISTROS EN ESTE SECTOR //</div>';
             return;
         }
 
         torneosFiltrados.forEach(torneo => {
-            const card = document.createElement('div');
-            card.className = 'tournament-card section-card';
-            card.onclick = () => this.openDetail(torneo.id); // Click para ver detalle
+            const entry = document.createElement('div');
+            entry.className = 'log-entry';
+            entry.onclick = () => this.openDetail(torneo.id);
 
-            // Determinar color de estado
+            // Colores
             let statusColor = 'var(--text-dim)';
-            let statusLabel = 'DESCONOCIDO';
+            let statusLabel = 'UNK';
 
             if (torneo.estado === 'planificado') {
-                statusColor = 'var(--neon-blue)';
+                statusColor = 'var(--neon-info)';
                 statusLabel = 'PLANIFICADO';
             } else if (torneo.estado === 'en_curso') {
-                statusColor = 'var(--neon-green)';
+                statusColor = 'var(--neon-success)';
                 statusLabel = 'EN CURSO';
             } else if (torneo.estado === 'finalizado') {
                 statusColor = 'var(--text-dim)';
                 statusLabel = 'FINALIZADO';
             }
 
-            // Calcular plazas
             const plazasOcupadas = torneo.participantes.length;
-            const plazasTotales = torneo.max_participantes;
-            const progressPercent = (plazasOcupadas / plazasTotales) * 100;
 
-            card.innerHTML = `
-                <div class="tournament-header">
-                    <span class="badge" style="color: ${statusColor}; border-color: ${statusColor}">${statusLabel}</span>
-                    <span class="text-dim text-mono text-small">${new Date(torneo.fecha_inicio).toLocaleDateString()}</span>
+            entry.innerHTML = `
+                <div class="log-status text-mono" style="color: ${statusColor}; font-size: 0.8rem;">
+                    [${statusLabel}]
                 </div>
-                <h3 class="mt-1 mb-1 neon-text-subtle">${torneo.nombre}</h3>
-                <div class="tournament-meta text-mono text-small text-dim mb-1">
-                    <div>🎮 ${torneo.juego}</div>
-                    <div>🏆 ${torneo.formato.replace('_', ' ')}</div>
+                <div class="log-info">
+                    <span class="log-title text-mono">${torneo.nombre}</span>
+                    <span class="log-meta">> ${torneo.juego} | ${torneo.formato}</span>
                 </div>
-                <div class="tournament-progress">
-                    <div class="progress-label flex justify-between text-mono text-small mb-05">
-                        <span>Participantes</span>
-                        <span>${plazasOcupadas}/${plazasTotales}</span>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill" style="width: ${progressPercent}%; background-color: ${statusColor}"></div>
-                    </div>
+                <div class="log-meta text-right text-mono">
+                    <div>${new Date(torneo.fecha_inicio).toLocaleDateString()}</div>
+                    <div>USR: ${plazasOcupadas}/${torneo.max_participantes}</div>
                 </div>
             `;
-            grid.appendChild(card);
+            grid.appendChild(entry);
         });
     },
 
@@ -301,40 +291,55 @@ const TournamentsModule = {
             `;
         }
 
+        // Classes mapping
+        const statusClass = torneo.estado === 'en_curso' ? 'text-success' : (torneo.estado === 'planificado' ? 'text-info' : 'text-dim');
+
         body.innerHTML = `
-            <h2 class="neon-title-red mb-1">${torneo.nombre}</h2>
-            <div class="grid-2-col gap-2 mb-2">
-                <div>
-                    <p class="text-dim text-mono text-small">JUEGO</p>
-                    <p class="text-large">${torneo.juego}</p>
-                </div>
-                <div>
-                    <p class="text-dim text-mono text-small">ESTADO</p>
-                    <p class="${torneo.estado === 'en_curso' ? 'text-green' : 'text-blue'} uppercase">${torneo.estado.replace('_', ' ')}</p>
-                </div>
-            </div>
+            <h2 class="text-brand mb-2">${torneo.nombre}</h2>
             
-            <div class="mb-2">
-                <p class="text-dim text-mono text-small">REGLAS / INFO</p>
-                <div class="rules-box p-1 border-dim bg-darker text-small text-mono">
-                    ${torneo.reglas || 'Sin reglas específicas.'}
+            <div style="margin-bottom: 2rem; border-bottom: 1px solid #222; padding-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span class="text-mono text-dim">JUEGO</span>
+                    <span class="text-mono">${torneo.juego}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                    <span class="text-mono text-dim">ESTADO</span>
+                    <span class="text-mono ${statusClass} uppercase">[${torneo.estado.replace('_', ' ')}]</span>
                 </div>
             </div>
 
             <div class="mb-2">
-                <p class="text-dim text-mono text-small flex justify-between">
-                    <span>PARTICIPANTES</span>
-                    <span>${torneo.participantes.length} / ${torneo.max_participantes}</span>
+                <h3 class="text-dim text-mono text-small">>> REGLAS / PROTOCOLO</h3>
+                <p class="text-mono" style="font-size: 0.9rem; border: 1px solid #222; padding: 1rem; background: #000;">
+                    ${torneo.reglas || 'Sin parámetros adicionales.'}
                 </p>
-                ${participantesHTML}
             </div>
 
-            <div class="text-center mt-2">
+            <div class="mb-2">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span class="text-dim text-mono">PARTICIPANTES</span>
+                    <span class="text-mono">${torneo.participantes.length} / ${torneo.max_participantes}</span>
+                </div>
+                <!-- Reuse styles or simple list -->
+                ${participantesHTML.replace('participant-list', 'log-entry').replace('participant-item', '')} 
+                <div style="max-height: 150px; overflow-y: auto; border: 1px solid #222; padding: 0.5rem;">
+                     ${torneo.participantes.length ? '' : '<span class="text-dim text-small italic">Ninguna unidad conectada.</span>'}
+                     <ul style="list-style:none;">
+                        ${torneo.participantes.map(p => `
+                            <li class="text-mono text-small" style="padding: 0.2rem 0; border-bottom: 1px dashed #222;">
+                                👤 ${p.nombre || 'ANON'} ${p.id_usuario === this.state.usuarioActual ? '(TÚ)' : ''}
+                            </li>
+                        `).join('')}
+                     </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-2" style="border-top: 1px solid #222; padding-top: 1.5rem;">
                 ${actionButtons}
             </div>
         `;
 
-        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
     },
 
     /**

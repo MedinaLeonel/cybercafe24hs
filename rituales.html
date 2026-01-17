@@ -13,10 +13,8 @@
 <body id="rituales-page">
     <div class="app-container">
         <header class="site-header">
-            <h1 class="site-title" style="text-align: center;"><a href="index.html"
-                    style="text-decoration: none; color: inherit;">CYBERCAFÉ 24HS</a></h1>
+            <a href="index.html" class="site-title text-mono">CYBERCAFÉ 24HS</a>
             <nav class="main-nav">
-                <a href="index.html" class="nav-link">Inicio</a>
                 <a href="presencia.html" class="nav-link">Presencia</a>
                 <a href="rituales.html" class="nav-link active">Rituales</a>
                 <a href="torneos.html" class="nav-link">Torneos</a>
@@ -25,14 +23,14 @@
         </header>
 
         <main class="main-content">
-            <div class="section-card">
+            <div class="panel-terminal">
                 <div class="text-center mb-2">
-                    <h2 class="neon-title-red mb-1">RITUAL DIARIO</h2>
-                    <div class="neon-line" style="width: 50px; margin: 1rem auto;"></div>
+                    <h2 class="text-brand mb-1">RITUAL DIARIO</h2>
+                    <div style="width: 40px; height: 2px; background: var(--text-dim); margin: 1rem auto;"></div>
                 </div>
 
                 <div class="ritual-interface" style="max-width: 600px; margin: 0 auto;">
-                    <h3 id="ritualQuestion" class="text-mono text-center mb-2" style="color: #fff; font-size: 1.2rem;">
+                    <h3 id="ritualQuestion" class="text-mono text-center mb-2" style="color: #fff; font-size: 1.1rem;">
                         CARGANDO PREGUNTA...</h3>
 
                     <div id="voteOptions" class="vote-options">
@@ -45,9 +43,9 @@
                 </div>
             </div>
 
-            <div class="section-card" style="border-style: dashed; opacity: 0.8;">
-                <h3 class="text-blue" style="font-size: 1rem;">// PROTOCOLO</h3>
-                <p class="text-mono text-dim mt-1" style="font-size: 0.8rem;">
+            <div class="text-center">
+                <h3 class="text-dim">// PROTOCOLO</h3>
+                <p class="text-mono text-dim" style="font-size: 0.8rem;">
                     > Voto único por ciclo solar.<br>
                     > Resultados efímeros.<br>
                     > Sin persistencia servidor.
