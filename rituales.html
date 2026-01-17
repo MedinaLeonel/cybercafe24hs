@@ -34,25 +34,22 @@
             </div>
 
             <!-- FORMULARIO DE CREACIÓN (OCULTO) -->
+            <!-- FORMULARIO DE CREACIÓN (OCULTO - Requiere Token) -->
             <div id="createServiceSection" class="panel-terminal hidden" style="border-color: var(--neon-brand);">
                 <h3 class="text-brand mb-1">> CREAR NUEVO SERVICIO</h3>
-                <form id="createServiceForm">
+                <form id="newServiceForm">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <input type="text" name="titulo" class="input-terminal" placeholder="TITULO DEL SERVICIO"
+                        <input type="text" name="titulo" class="input-terminal" placeholder="TITULO" required>
+                        <input type="text" name="tipo" class="input-terminal" placeholder="TIPO (cine, evento...)"
                             required>
-                        <select name="tipo" class="input-terminal" style="background: #000;">
-                            <option value="pelicula">PELICULA</option>
-                            <option value="evento">EVENTO</option>
-                            <option value="promo">PROMOCIÓN</option>
-                        </select>
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                        <input type="date" name="fecha" class="input-terminal" required>
-                        <input type="url" name="enlace" class="input-terminal" placeholder="URL / ENLACE">
+                        <input type="text" name="fecha" class="input-terminal" placeholder="FECHA / HORARIO">
+                        <input type="url" name="enlace" class="input-terminal" placeholder="URL ENLACE">
                     </div>
 
-                    <textarea name="descripcion" class="input-terminal" rows="3" placeholder="DESCRIPCIÓN BREVE"
+                    <textarea name="descripcion" class="input-terminal" rows="3" placeholder="DESCRIPCIÓN"
                         required></textarea>
 
                     <div class="text-right">
@@ -62,19 +59,22 @@
                 </form>
             </div>
 
-            <!-- Contenedor de Grid de Servicios -->
-            <section id="servicios-grid" class="servicios-container">
-                <div class="text-center text-mono text-dim mt-2 blink">Cargando cartelera...</div>
+            <!-- LISTADO DE SERVICIOS (Backend Real) -->
+            <section id="services-list" class="servicios-container">
+                <!-- Se llena vía JS -->
             </section>
 
         </main>
 
         <footer class="site-footer text-center mt-2">
-            <span class="text-mono text-dim" style="font-size: 0.75rem;">● CARTELERA ACTUALIZADA LOCALMENTE</span>
+            <span class="text-mono text-dim" style="font-size: 0.75rem;">● CONECTADO A NODE.JS SERVER (PORT 3000)</span>
         </footer>
     </div>
 
-    <script src="js/main.js"></script>
+    <!-- Scripts -->
+    <script src="js/main.js"></script> <!-- Mantenemos main para navbar/presencia global si es necesario -->
+    <script src="js/services.js"></script> <!-- Lógica específica conectada a Backend -->
+    <script src="js/auth.js"></script> <!-- Autenticación Global -->
 </body>
 
 </html>

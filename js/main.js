@@ -561,10 +561,10 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('Módulo de presencia activado');
     }
 
-    if (path.includes('rituales.html') || bodyId === 'rituales-page') {
-        ServiciosModule.init();
-        console.log('Módulo de servicios activado');
-    }
+    // if (path.includes('rituales.html') || bodyId === 'rituales-page') {
+    //     ServiciosModule.init();
+    //     console.log('Módulo de servicios activado');
+    // }
 
     if (path.includes('archivo.html') || bodyId === 'archivo-page') {
         ArchiveModule.init();
