@@ -26,7 +26,40 @@
             <div class="text-center mb-2">
                 <h2 class="text-brand mb-1">SERVICIOS</h2>
                 <div style="width: 40px; height: 2px; background: var(--text-dim); margin: 1rem auto;"></div>
-                <p class="text-mono text-dim">PROGRAMACIÓN DE PELÍCULAS Y STREAMING</p>
+                <div style="display: flex; justify-content: center; align-items: center; gap: 1rem;">
+                    <p class="text-mono text-dim" style="margin: 0;">PROGRAMACIÓN & ANUNCIOS</p>
+                    <button id="btnShowCreateService" class="btn btn-small text-mono" style="border-style: dashed;">+
+                        NUEVO</button>
+                </div>
+            </div>
+
+            <!-- FORMULARIO DE CREACIÓN (OCULTO) -->
+            <div id="createServiceSection" class="panel-terminal hidden" style="border-color: var(--neon-brand);">
+                <h3 class="text-brand mb-1">> CREAR NUEVO SERVICIO</h3>
+                <form id="createServiceForm">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="text" name="titulo" class="input-terminal" placeholder="TITULO DEL SERVICIO"
+                            required>
+                        <select name="tipo" class="input-terminal" style="background: #000;">
+                            <option value="pelicula">PELICULA</option>
+                            <option value="evento">EVENTO</option>
+                            <option value="promo">PROMOCIÓN</option>
+                        </select>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <input type="date" name="fecha" class="input-terminal" required>
+                        <input type="url" name="enlace" class="input-terminal" placeholder="URL / ENLACE">
+                    </div>
+
+                    <textarea name="descripcion" class="input-terminal" rows="3" placeholder="DESCRIPCIÓN BREVE"
+                        required></textarea>
+
+                    <div class="text-right">
+                        <button type="button" id="btnCancelCreateService" class="btn mr-1">CANCELAR</button>
+                        <button type="submit" class="btn btn-primary">PUBLICAR</button>
+                    </div>
+                </form>
             </div>
 
             <!-- Contenedor de Grid de Servicios -->

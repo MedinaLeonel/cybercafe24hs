@@ -235,19 +235,23 @@ const PresenceModule = {
 // ====================
 // 3. MÓDULO DE SERVICIOS (CARTELERA)
 // ====================
+// ====================
+// 3. MÓDULO DE SERVICIOS (CARTELERA)
+// ====================
 const ServiciosModule = {
     // Configuración
     config: {
-        containerId: 'servicios-grid'
+        containerId: 'servicios-grid',
+        formId: 'createServiceForm',
+        toggleBtnId: 'btnShowCreateService',
+        cancelBtnId: 'btnCancelCreateService',
+        formContainerId: 'createServiceSection',
+        storageKey: 'services_data_v2'
     },
 
-    // Estado inicial (Datos simulados DB)
+    // Estado inicial
     state: {
-        servicios: [
-            { id: 1, titulo: 'GHOST IN THE SHELL', año: 1995, sinopsis: 'Cyborg policía caza a un hacker fantasma.', estado: 'activo', horario: 'HOY 22:00HS' },
-            { id: 2, titulo: 'BLADE RUNNER 2049', año: 2017, sinopsis: 'Un nuevo blade runner descubre un secreto enterrado.', estado: 'anunciado', horario: 'PRÓXIMAMENTE' },
-            { id: 3, titulo: 'AKIRA', año: 1988, sinopsis: 'Pandilleros motociclistas en Neo-Tokyo posguerra.', estado: 'pasado', horario: 'FINALIZADO' }
-        ]
+        servicios: []
     },
 
     /**
@@ -255,65 +259,170 @@ const ServiciosModule = {
      */
     init: function () {
         console.log('Inicializando Módulo de Servicios...');
+        this.loadServicios();
         this.renderServicios();
+        this.setupEventListeners();
     },
 
     /**
-     * Renderizar lista de servicios (Películas)
+     * Cargar servicios desde LocalStorage
+     */
+    loadServicios: function () {
+        const saved = CyberUtils.storage(this.config.storageKey);
+        if (saved && Array.isArray(saved)) {
+            this.state.servicios = saved;
+        } else {
+            // Inicializar vacío para que solo aparezcan los creados por el usuario
+            this.state.servicios = [];
+            this.saveServicios(this.state.servicios);
+        }
+    },
+
+    /**
+     * Obtener lista de servicios (Hook para fetch futuro)
+     */
+    getServicios: function () {
+        return this.state.servicios;
+    },
+
+    /**
+     * Guardar servicios (Local -> Futuro API)
+     */
+    saveServicios: function (servicios) {
+        this.state.servicios = servicios;
+        CyberUtils.storage(this.config.storageKey, servicios);
+    },
+
+    /**
+     * Crear un nuevo servicio
+     */
+    createServicio: function (data) {
+        // Validaciones básicas
+        if (!data.titulo || !data.descripcion) {
+            alert('Faltan campos obligatorios');
+            return;
+        }
+
+        const newService = {
+            id: 'srv_' + Date.now().toString(36),
+            titulo: data.titulo,
+            descripcion: data.descripcion,
+            enlace: data.enlace || '#',
+            tipo: data.tipo || 'evento',
+            fecha: data.fecha || new Date().toISOString().split('T')[0],
+            estado: 'activo'
+        };
+
+        const updatedList = [newService, ...this.state.servicios];
+        this.saveServicios(updatedList);
+        this.renderServicios();
+
+        // Limpiar y ocultar formulario después de crear
+        document.getElementById(this.config.formId).reset();
+        this.toggleForm(false);
+
+        CyberUtils.showMessage('Servicio publicado correctamente.', 'success', document.querySelector('.main-content'));
+    },
+
+    /**
+     * Renderizar lista de servicios
      */
     renderServicios: function () {
         const container = document.getElementById(this.config.containerId);
         if (!container) return;
 
         container.innerHTML = '';
+        const lista = this.getServicios();
 
-        if (this.state.servicios.length === 0) {
-            container.innerHTML = '<div class="text-center text-dim text-mono">// SIN PROGRAMACIÓN ACTIVA //</div>';
+        if (lista.length === 0) {
+            container.innerHTML = '<div class="text-center text-dim text-mono">// SIN SERVICIOS ACTIVOS //</div>';
             return;
         }
 
-        this.state.servicios.forEach(servicio => {
-            // Determinar color de estado
-            let statusColor = 'var(--text-dim)';
-            let statusLabel = 'OFFLINE';
-
-            if (servicio.estado === 'activo') {
-                statusColor = 'var(--neon-success)';
-                statusLabel = 'EN TRANSMISIÓN';
-            } else if (servicio.estado === 'anunciado') {
-                statusColor = 'var(--neon-info)';
-                statusLabel = 'PROGRAMADO';
-            }
+        lista.forEach(servicio => {
+            // Determinar estilos según tipo
+            let typeColor = 'var(--text-dim)';
+            if (servicio.tipo === 'pelicula') typeColor = 'var(--neon-info)';
+            if (servicio.tipo === 'evento') typeColor = 'var(--neon-brand)';
+            if (servicio.tipo === 'promo') typeColor = 'var(--neon-success)';
 
             const card = document.createElement('article');
             card.className = 'servicio-card panel-terminal';
             card.style.marginBottom = '1.5rem';
 
-            // Reutilizamos estilos visuales existentes pero en estructura de anuncio
             card.innerHTML = `
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px dashed #333; padding-bottom: 0.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; border-bottom: 1px dashed #333; padding-bottom: 0.5rem;">
                     <div>
-                        <h3 class="text-main" style="margin: 0; font-size: 1.2rem; letter-spacing: 0.05em;">${servicio.titulo}</h3>
-                        <span class="text-mono text-dim" style="font-size: 0.8rem;">AÑO: ${servicio.año}</span>
+                        <h3 class="text-main" style="margin: 0; font-size: 1.1rem;">${servicio.titulo}</h3>
+                        <span class="text-mono" style="color: ${typeColor}; font-size: 0.75rem;">[ ${servicio.tipo.toUpperCase()} ]</span>
                     </div>
                     <div class="text-right">
-                        <span class="text-mono" style="color: ${statusColor}; font-size: 0.75rem;">[ ${statusLabel} ]</span>
-                        <div class="text-mono text-dim" style="font-size: 0.8rem;">${servicio.horario || '--:--'}</div>
+                        <div class="text-mono text-success" style="font-size: 0.7rem;">● ACTIVO</div>
+                        <div class="text-mono text-dim" style="font-size: 0.75rem;">${servicio.fecha}</div>
                     </div>
                 </div>
                 
-                <p class="text-dim" style="font-size: 0.95rem; line-height: 1.5;">${servicio.sinopsis}</p>
+                <p class="text-dim text-mono" style="font-size: 0.9rem; margin-bottom: 1rem;">${servicio.descripcion}</p>
                 
-                <!-- Placeholder para acciones futuras -->
-                <div class="text-right mt-1">
-                    ${servicio.estado === 'activo' || servicio.estado === 'anunciado'
-                    ? `<button class="btn btn-small" style="color: ${statusColor}; border-color: #333;">+ INFO</button>`
-                    : ''}
+                <div class="text-right">
+                    <a href="${servicio.enlace}" target="_blank" class="btn btn-small" style="text-decoration: none; display: inline-block;">
+                        > ACCEDER
+                    </a>
                 </div>
             `;
-
             container.appendChild(card);
         });
+    },
+
+    /**
+     * Mostrar/Ocultar formulario
+     */
+    toggleForm: function (show) {
+        const formContainer = document.getElementById(this.config.formContainerId);
+        if (formContainer) {
+            if (show) {
+                formContainer.classList.remove('hidden');
+            } else {
+                formContainer.classList.add('hidden');
+            }
+        }
+    },
+
+    /**
+     * Configurar Listeners
+     */
+    setupEventListeners: function () {
+        // Toggle Form
+        const btnShow = document.getElementById(this.config.toggleBtnId);
+        const btnCancel = document.getElementById(this.config.cancelBtnId);
+
+        if (btnShow) {
+            btnShow.addEventListener('click', () => this.toggleForm(true));
+        }
+
+        if (btnCancel) {
+            btnCancel.addEventListener('click', (e) => {
+                e.preventDefault(); // Evita submits accidentales
+                this.toggleForm(false);
+            });
+        }
+
+        // Handle Submit
+        const form = document.getElementById(this.config.formId);
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const formData = new FormData(form);
+                const data = {
+                    titulo: formData.get('titulo'),
+                    tipo: formData.get('tipo'),
+                    descripcion: formData.get('descripcion'),
+                    fecha: formData.get('fecha'),
+                    enlace: formData.get('enlace')
+                };
+                this.createServicio(data);
+            });
+        }
     }
 };
 
