@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presencia — Cybercafé 24hs</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>👁️</text></svg>">
+</head>
+
+<body id="presencia-page">
+    <div class="app-container">
+        <header class="site-header">
+            <h1 class="site-title" style="text-align: center;"><a href="index.html"
+                    style="text-decoration: none; color: inherit;">CYBERCAFÉ 24HS</a></h1>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">Inicio</a>
+                <a href="presencia.html" class="nav-link active">Presencia</a>
+                <a href="rituales.html" class="nav-link">Rituales</a>
+                <a href="torneos.html" class="nav-link">Torneos</a>
+                <a href="archivo.html" class="nav-link">Archivo</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="section-card text-center">
+                <h2 class="neon-title-blue mb-2">SISTEMA DE PRESENCIA</h2>
+
+                <p class="text-mono text-dim mb-2">
+                    IDENTIDAD: ANÓNIMA<br>
+                    CONEXIÓN: SEGURA
+                </p>
+
+                <div class="presence-container">
+                    <div id="presenceStatus" class="text-mono mb-1" style="font-size: 0.9rem;">ESPERANDO INPUT...</div>
+
+                    <div class="presence-counter neon-flicker" id="presenceCounter"
+                        style="color: var(--neon-red); text-shadow: 0 0 10px var(--neon-red);">0000</div>
+
+                    <div class="text-mono text-dim mt-1 mb-2">ALMAS NOCTURNAS DETECTADAS</div>
+
+                    <div class="form-group" style="max-width: 400px; margin: 0 auto;">
+                        <textarea id="presenceMessage" class="form-textarea" placeholder="> Dejar mensaje en el log..."
+                            rows="2"></textarea>
+                    </div>
+
+                    <button id="markPresenceBtn" class="btn btn-primary mt-1">
+                        [ MARCAR ASISTENCIA ]
+                    </button>
+
+                    <div id="emotionalFeedback" class="text-center mt-2 text-mono"
+                        style="min-height: 1.2em; color: var(--neon-blue); font-style: italic;"></div>
+
+                </div>
+            </div>
+
+            <div class="text-center text-mono text-dim" style="font-size: 0.8rem; margin-top: 2rem;">
+                COOLDOWN: 24 HORAS // SYNC: LOCAL
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <span id="storageStatus" style="color: var(--neon-green)">● SYSTEM ONLINE</span>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>

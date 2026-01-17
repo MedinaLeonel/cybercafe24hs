@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Archivo — Cybercafé 24hs</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📁</text></svg>">
+</head>
+
+<body id="archivo-page">
+    <div class="app-container">
+        <header class="site-header">
+            <h1 class="site-title" style="text-align: center;"><a href="index.html"
+                    style="text-decoration: none; color: inherit;">CYBERCAFÉ 24HS</a></h1>
+            <nav class="main-nav">
+                <a href="index.html" class="nav-link">Inicio</a>
+                <a href="presencia.html" class="nav-link">Presencia</a>
+                <a href="rituales.html" class="nav-link">Rituales</a>
+                <a href="torneos.html" class="nav-link">Torneos</a>
+                <a href="archivo.html" class="nav-link active">Archivo</a>
+            </nav>
+        </header>
+
+        <main class="main-content">
+            <div class="section-card">
+                <h2 class="neon-title-red mb-2 text-center">ARCHIVO DE MEMORIA</h2>
+
+                <form id="archiveForm" class="mb-2" style="border-bottom: 1px solid #333; padding-bottom: 2rem;">
+                    <label for="phraseInput" class="text-mono text-dim mb-1" style="display: block;">> INPUT
+                        DATOS:</label>
+                    <input type="text" id="phraseInput" class="form-input" placeholder="Escribe aquí..." maxlength="200"
+                        required>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">[ GUARDAR EN DISCO LOCAL
+                        ]</button>
+                    <p class="text-mono text-dim mt-1" style="font-size: 0.75rem; text-align: center;">
+                        * Esto queda como memoria de tu navegador (LocalStorage).
+                    </p>
+                </form>
+
+                <div id="emptyArchive" class="text-center text-dim text-mono py-2">
+                    <span style="opacity: 0.5;">// ARCHIVO VACÍO //</span>
+                </div>
+
+                <ul id="archiveList" class="archive-list">
+                    <!-- JS Content -->
+                </ul>
+            </div>
+
+            <div class="text-right">
+                <button id="clearArchiveBtn" class="btn" style="border-color: #333; color: #555; font-size: 0.7rem;">
+                    [ FORMAT C: ]
+                </button>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <span style="color: var(--neon-red)">● MEMORY BANK</span>
+        </footer>
+    </div>
+
+    <script src="js/main.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const clearBtn = document.getElementById('clearArchiveBtn');
+            if (clearBtn) {
+                clearBtn.addEventListener('click', function () {
+                    if (confirm('>> WARNING: IRREVERSIBLE DATA LOSS.\n>> PROCEED?')) {
+                        localStorage.removeItem('cybercafe24hs_archive_phrases');
+                        window.location.reload();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>

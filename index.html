@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybercafé 24hs</title>
+    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>☕</text></svg>">
+</head>
+
+<body id="index-page">
+    <div class="app-container" style="justify-content: center; align-items: center; min-height: 100vh;">
+
+        <!-- NEON SIGN -->
+        <div
+            style="border: 4px solid #111; padding: 3rem; background: #000; box-shadow: 0 0 30px rgba(255, 42, 109, 0.1); position: relative; text-align: center; max-width: 600px; width: 100%;">
+
+            <!-- FRAME GLOW -->
+            <div
+                style="position: absolute; top: -2px; left: -2px; right: -2px; bottom: -2px; border: 2px solid var(--neon-red); opacity: 0.5; pointer-events: none; box-shadow: 0 0 20px var(--neon-red);">
+            </div>
+
+            <h1 class="neon-title-red" style="font-size: 4rem; line-height: 1; margin-bottom: 0.5rem;">CYBERCAFÉ</h1>
+
+            <div class="neon-flicker"
+                style="font-family: var(--font-mono); color: var(--neon-green); font-size: 1.5rem; letter-spacing: 0.2rem; margin-bottom: 1.5rem; text-shadow: 0 0 10px var(--neon-green);">
+                OPEN 24 HOURS
+            </div>
+
+            <div style="width: 100%; height: 1px; background: #333; margin: 2rem 0;"></div>
+
+            <!-- NAVIGATION GRID -->
+            <nav class="main-nav-grid">
+                <a href="presencia.html" class="nav-card">
+                    <span class="nav-title">> MARCAR PRESENCIA</span>
+                    <span class="nav-desc">Deja constancia de tu visita en el contador local diario.</span>
+                </a>
+                <a href="rituales.html" class="nav-card">
+                    <span class="nav-title">> RITUALES</span>
+                    <span class="nav-desc">Votaciones efímeras y consenso silencioso del cybercafé.</span>
+                </a>
+                <a href="torneos.html" class="nav-card">
+                    <span class="nav-title">> TORNEOS</span>
+                    <span class="nav-desc">Inscripciones y seguimiento de competencias activas.</span>
+                </a>
+                <a href="archivo.html" class="nav-card">
+                    <span class="nav-title">> ARCHIVO LOCAL</span>
+                    <span class="nav-desc">Banco de memoria persistente en tu navegador.</span>
+                </a>
+            </nav>
+
+        </div>
+
+        <div class="text-mono text-dim mt-2 text-center" style="max-width: 500px; font-size: 0.8rem; opacity: 0.7;">
+            <p class="mb-1">ESTE LUGAR EXISTE EN TU NAVEGADOR.</p>
+            <p>El Cybercafé 24hs es un espacio estático y persistente. Tus datos viven en `localStorage`. No hay
+                servidor, solo tú y la máquina.</p>
+        </div>
+
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+
+</html>
