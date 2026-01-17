@@ -1,46 +1,37 @@
 /* ============================================
-   CYBERCAFÉ 24HS - Neon Night Interface
-   estilo visual: cartel de neón / medianoche
+   CYBERCAFÉ 24HS - SYSTEM VISUAL CORE
+   Identity: Night Mode / Terminal / Quiet
    ============================================ */
 
 :root {
-    /* --- PALETA NEÓN (Night Palette) --- */
-    --bg-color: #050505;
-    /* Negro casi absoluto */
+    /* --- COLOR PALETTE --- */
+    --bg-root: #050505;
+    /* Void Black */
     --bg-panel: #0a0a0a;
-    /* Paneles oscuros */
+    /* Panel Black */
 
-    /* Colores Neón Principales */
-    --neon-red: #ff2a6d;
-    /* Magenta/Rojo Neón */
-    --neon-blue: #05d9e8;
-    /* Cyan Eléctrico */
-    --neon-green: #39ff14;
-    /* Verde Terminal/Neón */
+    --neon-brand: #ff2a6d;
+    /* Red/Magenta -> Branding */
+    --neon-info: #05d9e8;
+    /* Cyan -> Presence/Info */
+    --neon-success: #39ff14;
+    /* Green -> Active/Tournaments */
 
-    /* Textos */
-    --text-primary: #e0e0e0;
-    /* Blanco roto */
-    --text-dim: #555555;
-    /* Gris humo/apagado */
+    --text-main: #e0e0e0;
+    /* Primary reading */
+    --text-dim: #666666;
+    /* Secondary/Meta */
 
-    /* Fuentes */
+    /* --- TYPOGRAPHY --- */
     --font-display: system-ui, -apple-system, sans-serif;
     --font-mono: 'Courier New', monospace;
 
-    /* Efectos */
-    --shadow-neon-red: 0 0 5px var(--neon-red), 0 0 20px var(--neon-red);
-    --shadow-neon-blue: 0 0 5px var(--neon-blue), 0 0 20px var(--neon-blue);
-    --shadow-neon-green: 0 0 5px var(--neon-green), 0 0 20px var(--neon-green);
-
-    --scanline-effect: linear-gradient(to bottom,
-            rgba(255, 255, 255, 0),
-            rgba(255, 255, 255, 0) 50%,
-            rgba(0, 0, 0, 0.2) 50%,
-            rgba(0, 0, 0, 0.2));
+    /* --- LAYOUT --- */
+    --max-width: 800px;
+    --spacing-base: 2rem;
 }
 
-/* --- RESET & BASE --- */
+/* --- RESET & BASIC SETUP --- */
 * {
     margin: 0;
     padding: 0;
@@ -48,21 +39,19 @@
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-primary);
+    background-color: var(--bg-root);
+    color: var(--text-main);
     font-family: var(--font-display);
-    line-height: 1.5;
+    line-height: 1.6;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
     overflow-x: hidden;
-    position: relative;
-    /* Efecto granulado sutil de fondo */
-    background-image:
-        radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
+    /* Subtle Grain */
+    background-image: radial-gradient(circle at 50% 50%, #111 0%, #000 100%);
 }
 
-/* Scanline Overlay (Decorativo) */
+/* Scanline Decoration */
 body::after {
     content: "";
     position: fixed;
@@ -70,471 +59,358 @@ body::after {
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--scanline-effect);
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
     background-size: 100% 4px;
     pointer-events: none;
     z-index: 999;
-    opacity: 0.15;
+    opacity: 0.1;
 }
 
-/* --- LAYOUT UTILITIES --- */
+/* --- LAYOUT --- */
 .app-container {
-    max-width: 900px;
+    width: 100%;
+    max-width: var(--max-width);
     margin: 0 auto;
-    padding: 2rem 1rem;
+    padding: var(--spacing-base) 1rem;
     flex: 1;
     display: flex;
     flex-direction: column;
-    position: relative;
-    z-index: 1;
 }
 
-.text-center {
-    text-align: center;
+/* --- TYPOGRAPHY SYSTEM --- */
+h1,
+h2,
+h3 {
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+h1 {
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    font-size: 1.5rem;
+}
+
+h2 {
+    font-weight: 800;
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+}
+
+h3 {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+}
+
+p {
+    margin-bottom: 1rem;
 }
 
 .text-mono {
     font-family: var(--font-mono);
 }
 
-.mt-1 {
-    margin-top: 1rem;
-}
-
-.mt-2 {
-    margin-top: 2rem;
-}
-
-.mb-1 {
-    margin-bottom: 1rem;
-}
-
-.mb-2 {
-    margin-bottom: 2rem;
-}
-
-/* --- TYPOGRAPHY & NEON TEXT --- */
-h1,
-h2,
-h3 {
-    text-transform: uppercase;
-    font-weight: 800;
-    letter-spacing: 0.1em;
-}
-
-.neon-title-red {
-    color: #fff;
-    text-shadow:
-        0 0 5px #fff,
-        0 0 10px #fff,
-        0 0 20px var(--neon-red),
-        0 0 40px var(--neon-red),
-        0 0 80px var(--neon-red);
-}
-
-.neon-title-blue {
-    color: #fff;
-    text-shadow:
-        0 0 5px #fff,
-        0 0 10px #fff,
-        0 0 20px var(--neon-blue),
-        0 0 40px var(--neon-blue),
-        0 0 80px var(--neon-blue);
-}
-
-.text-green {
-    color: var(--neon-green);
-    text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
-}
-
-.text-amber {
-    color: var(--neon-red);
-    text-shadow: 0 0 8px rgba(255, 42, 109, 0.4);
-}
-
-/* Mapped Amber to Red/Magenta for logic compatibility */
-.text-blue {
-    color: var(--neon-blue);
-    text-shadow: 0 0 8px rgba(5, 217, 232, 0.4);
-}
-
 .text-dim {
     color: var(--text-dim);
 }
 
-/* --- NAVIGATION --- */
+.text-center {
+    text-align: center;
+}
+
+/* Neon Variants */
+.text-brand {
+    color: var(--neon-brand);
+    text-shadow: 0 0 8px rgba(255, 42, 109, 0.4);
+}
+
+.text-info {
+    color: var(--neon-info);
+    text-shadow: 0 0 8px rgba(5, 217, 232, 0.4);
+}
+
+.text-success {
+    color: var(--neon-success);
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+}
+
+/* --- COMPONENTS: HEADER & NAV --- */
 .site-header {
+    margin-bottom: 3rem;
     border-bottom: 1px solid #222;
     padding-bottom: 1rem;
-    margin-bottom: 3rem;
+    text-align: center;
 }
 
 .site-title {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    display: block;
+    display: inline-block;
     color: var(--text-dim);
-    text-shadow: none;
-}
-
-.main-nav {
-    display: flex;
-    gap: 1.5rem;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-/* Propósito: Navegación simple en cabecera de páginas internas */
-.nav-link {
-    text-decoration: none;
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    transition: all 0.3s ease;
-    padding: 0.5rem;
     border: 1px solid transparent;
+    padding: 0.5rem 1rem;
+    text-decoration: none;
+    transition: color 0.3s;
 }
 
-.nav-link:hover {
-    color: var(--text-primary);
-    text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+.site-title:hover {
+    color: var(--text-main);
     border-color: #333;
 }
 
-.nav-link.active {
-    color: var(--neon-blue);
-    border-bottom: 1px solid var(--neon-blue);
-    text-shadow: 0 0 5px var(--neon-blue);
+.main-nav {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    flex-wrap: wrap;
 }
 
-/* Propósito: Menú principal visual en Index (Estilo Cartelera/Lugar) */
-.main-nav-grid {
+.nav-link {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: all 0.3s;
+}
+
+.nav-link:hover {
+    color: var(--text-main);
+    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+}
+
+.nav-link.active {
+    color: var(--neon-info);
+    border-bottom: 1px solid var(--neon-info);
+}
+
+/* --- COMPONENTS: TERMINAL PANEL --- */
+.panel-terminal {
+    background: var(--bg-panel);
+    border: 1px solid #222;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    /* Clean, flat look */
+}
+
+.panel-terminal::before {
+    /* Optional decorative corner */
+    content: "";
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 10px;
+    height: 10px;
+    border-top: 1px solid var(--text-dim);
+    border-left: 1px solid var(--text-dim);
+}
+
+/* --- COMPONENTS: BUTTONS --- */
+.btn {
+    background: transparent;
+    border: 1px solid #333;
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    padding: 0.8rem 1.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    border-color: var(--text-main);
+    box-shadow: 0 0 8px rgba(255, 255, 255, 0.1);
+}
+
+.btn-primary {
+    border-color: var(--neon-brand);
+    color: var(--neon-brand);
+}
+
+.btn-primary:hover {
+    background: rgba(255, 42, 109, 0.1);
+    box-shadow: 0 0 15px rgba(255, 42, 109, 0.3);
+    color: #fff;
+}
+
+.btn-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+}
+
+/* --- COMPONENTS: FORMS (TERMINAL STYLE) --- */
+.input-terminal {
+    display: block;
+    width: 100%;
+    background: #000;
+    border: none;
+    border-bottom: 1px solid #333;
+    color: var(--text-main);
+    font-family: var(--font-mono);
+    padding: 1rem 0;
+    margin-bottom: 1.5rem;
+    transition: border-color 0.3s;
+}
+
+.input-terminal:focus {
+    outline: none;
+    border-bottom-color: var(--neon-info);
+}
+
+.input-terminal::placeholder {
+    color: #444;
+    font-style: italic;
+}
+
+/* --- PAGE: INDEX (HOME) --- */
+.neon-sign-container {
+    border: 4px solid #111;
+    padding: 3rem;
+    background: #000;
+    text-align: center;
+    position: relative;
+    margin-bottom: 3rem;
+}
+
+.neon-border-glow {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border: 2px solid var(--neon-brand);
+    opacity: 0.3;
+    pointer-events: none;
+    box-shadow: 0 0 20px var(--neon-brand);
+}
+
+/* Nav Grid for Index */
+.nav-grid {
     display: grid;
     grid-template-columns: 1fr;
-    gap: 2rem;
-    width: 100%;
-    margin-top: 2rem;
+    gap: 1.5rem;
 }
 
-@media (min-width: 600px) {
-    .main-nav-grid {
+@media(min-width: 600px) {
+    .nav-grid {
         grid-template-columns: 1fr 1fr;
     }
 }
 
 .nav-card {
-    display: flex;
-    flex-direction: column;
+    display: block;
     text-decoration: none;
-    padding: 1.5rem;
     border: 1px solid #222;
-    background: linear-gradient(180deg, rgba(10, 10, 10, 0.5) 0%, rgba(0, 0, 0, 0.8) 100%);
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, #0a0a0a 0%, #000 100%);
+    transition: all 0.3s;
 }
 
 .nav-card:hover {
-    border-color: var(--neon-blue);
-    background: rgba(5, 217, 232, 0.05);
+    border-color: var(--neon-info);
     transform: translateY(-2px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
 }
 
-.nav-card:hover .nav-title {
-    color: var(--neon-blue);
-    text-shadow: 0 0 8px var(--neon-blue);
-}
-
-.nav-title {
+.nav-card-title {
+    display: block;
     font-family: var(--font-mono);
-    font-size: 1.1rem;
-    color: #e0e0e0;
+    font-size: 1rem;
+    color: var(--text-main);
     margin-bottom: 0.5rem;
     text-transform: uppercase;
-    transition: color 0.3s;
 }
 
-.nav-desc {
-    font-family: var(--font-display);
+.nav-card:hover .nav-card-title {
+    color: var(--neon-info);
+    text-shadow: 0 0 5px var(--neon-info);
+}
+
+.nav-card-desc {
     font-size: 0.85rem;
     color: var(--text-dim);
-    line-height: 1.4;
 }
 
-/* --- COMPONENTS: CARDS & CONTAINERS --- */
-.section-card {
-    background: #080808;
-    border: 1px solid #222;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    position: relative;
-    /* Efecto sutil de borde brillante al hover */
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+/* --- PAGE: TORNEOS (LOG VIEW) --- */
+.tournament-log {
+    border-top: 1px solid #222;
 }
 
-.section-card:hover {
-    border-color: #333;
-    box-shadow: 0 0 15px rgba(255, 255, 255, 0.05);
-}
-
-/* Línea decorativa neón */
-.neon-line {
-    height: 2px;
-    background: var(--neon-red);
-    box-shadow: 0 0 10px var(--neon-red);
-    margin: 2rem 0;
-    opacity: 0.7;
-}
-
-/* --- COMPONENTS: BUTTONS --- */
-.btn {
-    display: inline-block;
-    padding: 0.8rem 1.6rem;
-    background: transparent;
-    color: var(--neon-blue);
-    border: 1px solid var(--neon-blue);
+.log-entry {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid #222;
     font-family: var(--font-mono);
-    text-transform: uppercase;
-    text-decoration: none;
     font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 5px rgba(5, 217, 232, 0.2);
+    transition: background 0.2s;
 }
 
-.btn:hover {
-    background: rgba(5, 217, 232, 0.1);
-    box-shadow: 0 0 15px var(--neon-blue);
-    color: white;
-    text-shadow: 0 0 5px white;
+.log-entry:hover {
+    background: #0c0c0c;
 }
 
-.btn-primary {
-    border-color: var(--neon-red);
-    color: var(--neon-red);
-    box-shadow: 0 0 5px rgba(255, 42, 109, 0.2);
+.log-status {
+    display: inline-block;
+    min-width: 100px;
 }
 
-.btn-primary:hover {
-    background: rgba(255, 42, 109, 0.1);
-    box-shadow: 0 0 20px var(--neon-red);
-    color: white;
+.log-info {
+    flex: 1;
+    padding: 0 1rem;
 }
 
-/* --- MODULE: PRESENCE --- */
-.presence-counter {
-    font-family: 'Courier New', monospace;
-    /* Digital numbers look */
-    font-size: 4rem;
-    color: var(--text-dim);
-    /* Apagado por defecto */
-    text-align: center;
-    border: 1px solid #222;
-    padding: 1rem;
-    margin: 2rem 0;
-    background: #000;
-
-    /* Si está activo/marcado, JS puede añadir clase o lo simulamos */
-    text-shadow: 0 0 2px rgba(255, 255, 255, 0.1);
-}
-
-/* --- MODULE: RITUALS (VOTING) --- */
-.vote-option {
+.log-title {
     display: block;
-    width: 100%;
-    padding: 1.2rem;
-    margin-bottom: 1rem;
-    background: transparent;
-    border: 1px solid #333;
-    color: var(--text-primary);
-    text-align: left;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    transition: all 0.2s ease;
+    color: var(--text-main);
+    margin-bottom: 0.2rem;
 }
 
-.vote-option:hover {
-    border-color: var(--neon-green);
-    color: var(--neon-green);
-    box-shadow: 0 0 10px rgba(57, 255, 20, 0.2);
-}
-
-.vote-option.selected {
-    border-color: var(--neon-green);
-    background: rgba(57, 255, 20, 0.1);
-    box-shadow: 0 0 15px rgba(57, 255, 20, 0.3);
-    color: white;
-    text-shadow: 0 0 5px var(--neon-green);
-}
-
-/* --- MODULE: ARCHIVE --- */
-.archive-list {
-    list-style: none;
-    border-left: 1px solid #333;
-    padding-left: 1rem;
-}
-
-.archive-item {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px dashed #222;
-}
-
-/* --- FORMS --- */
-.form-input,
-.form-textarea {
-    width: 100%;
-    background: #020202;
-    border: 1px solid #333;
-    color: var(--neon-blue);
-    padding: 1rem;
-    font-family: var(--font-mono);
-    margin-bottom: 1rem;
-    transition: border-color 0.3s;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-    outline: none;
-    border-color: var(--neon-blue);
-    box-shadow: 0 0 10px rgba(5, 217, 232, 0.2);
-}
-
-/* --- FOOTER --- */
-.site-footer {
-    border-top: 1px solid #111;
-    margin-top: auto;
-    padding: 2rem 0;
-    color: var(--text-dim);
-    text-align: center;
+.log-meta {
     font-size: 0.8rem;
-    font-family: var(--font-mono);
+    color: var(--text-dim);
 }
 
-/* --- ANIMATIONS --- */
-@keyframes flicker-slow {
+/* --- UTILS / ANIMATIONS --- */
+@keyframes flicker {
 
     0%,
-    19%,
-    21%,
-    23%,
-    25%,
-    54%,
-    56%,
     100% {
         opacity: 1;
-        text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--neon-red), 0 0 40px var(--neon-red);
     }
 
-    20%,
-    24%,
-    55% {
-        opacity: 0.5;
-        text-shadow: none;
-    }
-}
-
-.neon-flicker {
-    animation: flicker-slow 4s infinite alternate;
-}
-
-/* Mobile adjustments */
-@media (max-width: 600px) {
-    h1 {
-        font-size: 2rem;
+    50% {
+        opacity: 0.8;
     }
 
-    .presence-counter {
-        font-size: 3rem;
+    52% {
+        opacity: 0.2;
+    }
+
+    54% {
+        opacity: 0.8;
     }
 }
 
-/* --- MODULE: TOURNAMENTS --- */
-.grid-2-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+.blink {
+    animation: flicker 4s infinite;
 }
 
-@media (max-width: 600px) {
-    .grid-2-col {
-        grid-template-columns: 1fr;
-    }
+.hidden {
+    display: none !important;
 }
 
-.flex {
-    display: flex;
+.block {
+    display: block;
 }
 
-.justify-between {
-    justify-content: space-between;
-}
-
-.gap-2 {
-    gap: 1.5rem;
-}
-
-.mb-05 {
-    margin-bottom: 0.5rem;
-}
-
-.mr-1 {
-    margin-right: 1rem;
-}
-
-.border-top-dim {
-    border-top: 1px dashed #333;
-}
-
-.text-small {
-    font-size: 0.8rem;
-}
-
-.text-large {
-    font-size: 1.2rem;
-}
-
-.uppercase {
-    text-transform: uppercase;
-}
-
-.italic {
-    font-style: italic;
-}
-
-.pt-1 {
-    padding-top: 1rem;
-}
-
-.badge {
-    display: inline-block;
-    padding: 0.25rem 0.5rem;
-    border: 1px solid currentColor;
-    border-radius: 4px;
-    font-size: 0.7rem;
-    font-family: var(--font-mono);
-    text-transform: uppercase;
-    margin-right: 0.5rem;
-}
-
-.tournament-progress {
-    margin-top: 1rem;
-    background: #000;
-    border: 1px solid #333;
-    padding: 2px;
-}
-
-.progress-track {
-    background: #111;
-    height: 6px;
-    width: 100%;
-}
-
-.progress-fill {
-    height: 100%;
-    transition: width 0.3s ease;
+.mb-2 {
+    margin-bottom: 2rem;
 }
 
 /* Modal */
@@ -544,83 +420,18 @@ h3 {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 1000;
+    background: rgba(0, 0, 0, 0.9);
     display: flex;
-    justify-content: center;
     align-items: center;
-    padding: 1rem;
-    backdrop-filter: blur(2px);
+    justify-content: center;
+    z-index: 1000;
 }
 
 .modal-content {
     background: #050505;
-    border: 1px solid var(--neon-red);
-    box-shadow: 0 0 20px rgba(255, 42, 109, 0.2);
-    width: 100%;
+    border: 1px solid var(--neon-success);
+    width: 90%;
     max-width: 600px;
-    max-height: 90vh;
-    overflow-y: auto;
-    position: relative;
     padding: 2rem;
-}
-
-.close-modal {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    color: var(--text-dim);
-    font-size: 1.5rem;
-    cursor: pointer;
-}
-
-.close-modal:hover {
-    color: #fff;
-}
-
-.filters .filter-btn {
-    background: transparent;
-    border: 1px solid #333;
-    color: var(--text-dim);
-    padding: 0.5rem 1rem;
-    margin: 0 0.2rem;
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 0.8rem;
-    transition: all 0.2s;
-}
-
-.filters .filter-btn:hover,
-.filters .filter-btn.active {
-    border-color: var(--neon-blue);
-    color: var(--neon-blue);
-    box-shadow: 0 0 5px rgba(5, 217, 232, 0.2);
-}
-
-.participant-list {
-    list-style: none;
-    max-height: 150px;
-    overflow-y: auto;
-    border: 1px solid #222;
-    padding: 0.5rem;
-}
-
-.participant-item {
-    padding: 0.25rem 0;
-    border-bottom: 1px dashed #222;
-}
-
-.btn-disabled {
-    border-color: #333;
-    color: #555;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-.btn-disabled:hover {
-    background: transparent;
-    box-shadow: none;
-    color: #555;
+    box-shadow: 0 0 20px rgba(57, 255, 20, 0.1);
 }
