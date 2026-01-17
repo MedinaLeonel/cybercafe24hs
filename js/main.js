@@ -232,159 +232,88 @@ const PresenceModule = {
 // ====================
 // 3. MÓDULO DE RITUALES
 // ====================
-const RitualsModule = {
+// ====================
+// 3. MÓDULO DE SERVICIOS (CARTELERA)
+// ====================
+const ServiciosModule = {
+    // Configuración
     config: {
-        storageKey: 'rituals_data',
-        currentQuestion: '¿Qué resuena contigo esta noche?',
-        options: ['Silencio', 'Memoria', 'Sincronicidad']
+        containerId: 'servicios-grid'
     },
 
+    // Estado inicial (Datos simulados DB)
     state: {
-        userVote: null,
-        voteCounts: { 0: 0, 1: 0, 2: 0 },
-        lastVoteDate: null
+        servicios: [
+            { id: 1, titulo: 'GHOST IN THE SHELL', año: 1995, sinopsis: 'Cyborg policía caza a un hacker fantasma.', estado: 'activo', horario: 'HOY 22:00HS' },
+            { id: 2, titulo: 'BLADE RUNNER 2049', año: 2017, sinopsis: 'Un nuevo blade runner descubre un secreto enterrado.', estado: 'anunciado', horario: 'PRÓXIMAMENTE' },
+            { id: 3, titulo: 'AKIRA', año: 1988, sinopsis: 'Pandilleros motociclistas en Neo-Tokyo posguerra.', estado: 'pasado', horario: 'FINALIZADO' }
+        ]
     },
 
     /**
-     * Inicializar módulo de rituales
+     * Inicializar módulo
      */
     init: function () {
-        // Cargar estado
-        const saved = CyberUtils.storage(this.config.storageKey);
-        if (saved) {
-            this.state = { ...this.state, ...saved };
-        }
-
-        this.renderQuestion();
-        this.setupEventListeners();
-        this.updateResultsDisplay();
+        console.log('Inicializando Módulo de Servicios...');
+        this.renderServicios();
     },
 
     /**
-     * Renderizar pregunta y opciones
+     * Renderizar lista de servicios (Películas)
      */
-    renderQuestion: function () {
-        const questionEl = document.getElementById('ritualQuestion');
-        const optionsEl = document.getElementById('voteOptions');
+    renderServicios: function () {
+        const container = document.getElementById(this.config.containerId);
+        if (!container) return;
 
-        if (questionEl) {
-            questionEl.textContent = this.config.currentQuestion;
-        }
+        container.innerHTML = '';
 
-        if (optionsEl) {
-            optionsEl.innerHTML = '';
-
-            this.config.options.forEach((option, index) => {
-                const button = document.createElement('button');
-                button.className = 'vote-option';
-                if (this.state.userVote === index) {
-                    button.classList.add('selected');
-                }
-
-                button.dataset.optionIndex = index;
-                button.textContent = option;
-
-                optionsEl.appendChild(button);
-            });
-        }
-    },
-
-    /**
-     * Configurar listeners
-     */
-    setupEventListeners: function () {
-        const optionsEl = document.getElementById('voteOptions');
-        if (optionsEl) {
-            optionsEl.addEventListener('click', (e) => {
-                if (e.target.classList.contains('vote-option')) {
-                    const index = parseInt(e.target.dataset.optionIndex);
-                    this.castVote(index);
-                }
-            });
-        }
-    },
-
-    /**
-     * Emitir un voto
-     * @param {number} optionIndex - Índice de la opción votada
-     */
-    castVote: function (optionIndex) {
-        const today = new Date().toDateString();
-
-        // Verificar si ya votó hoy
-        if (this.state.lastVoteDate === today) {
-            CyberUtils.showMessage(
-                'Ya has participado en el ritual de hoy.',
-                'info',
-                document.querySelector('.rituals-container')
-            );
+        if (this.state.servicios.length === 0) {
+            container.innerHTML = '<div class="text-center text-dim text-mono">// SIN PROGRAMACIÓN ACTIVA //</div>';
             return;
         }
 
-        // Actualizar estado
-        if (this.state.userVote !== null) {
-            // Restar voto anterior si existe
-            this.state.voteCounts[this.state.userVote] =
-                Math.max(0, this.state.voteCounts[this.state.userVote] - 1);
-        }
+        this.state.servicios.forEach(servicio => {
+            // Determinar color de estado
+            let statusColor = 'var(--text-dim)';
+            let statusLabel = 'OFFLINE';
 
-        this.state.userVote = optionIndex;
-        this.state.voteCounts[optionIndex] = (this.state.voteCounts[optionIndex] || 0) + 1;
-        this.state.lastVoteDate = today;
+            if (servicio.estado === 'activo') {
+                statusColor = 'var(--neon-success)';
+                statusLabel = 'EN TRANSMISIÓN';
+            } else if (servicio.estado === 'anunciado') {
+                statusColor = 'var(--neon-info)';
+                statusLabel = 'PROGRAMADO';
+            }
 
-        // Guardar
-        CyberUtils.storage(this.config.storageKey, this.state);
+            const card = document.createElement('article');
+            card.className = 'servicio-card panel-terminal';
+            card.style.marginBottom = '1.5rem';
 
-        // Feedback
-        CyberUtils.showMessage(
-            `Voto registrado: "${this.config.options[optionIndex]}"`,
-            'success',
-            document.querySelector('.rituals-container')
-        );
+            // Reutilizamos estilos visuales existentes pero en estructura de anuncio
+            card.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; border-bottom: 1px dashed #333; padding-bottom: 0.5rem;">
+                    <div>
+                        <h3 class="text-main" style="margin: 0; font-size: 1.2rem; letter-spacing: 0.05em;">${servicio.titulo}</h3>
+                        <span class="text-mono text-dim" style="font-size: 0.8rem;">AÑO: ${servicio.año}</span>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-mono" style="color: ${statusColor}; font-size: 0.75rem;">[ ${statusLabel} ]</span>
+                        <div class="text-mono text-dim" style="font-size: 0.8rem;">${servicio.horario || '--:--'}</div>
+                    </div>
+                </div>
+                
+                <p class="text-dim" style="font-size: 0.95rem; line-height: 1.5;">${servicio.sinopsis}</p>
+                
+                <!-- Placeholder para acciones futuras -->
+                <div class="text-right mt-1">
+                    ${servicio.estado === 'activo' || servicio.estado === 'anunciado'
+                    ? `<button class="btn btn-small" style="color: ${statusColor}; border-color: #333;">+ INFO</button>`
+                    : ''}
+                </div>
+            `;
 
-        // Actualizar UI
-        this.renderQuestion();
-        this.updateResultsDisplay();
-
-        // HOOK PARA BACKEND FUTURO:
-        // CyberUtils.syncWithBackend('rituals/vote', {
-        //   option: optionIndex,
-        //   timestamp: new Date().toISOString()
-        // });
-    },
-
-    /**
-     * Actualizar visualización de resultados
-     */
-    updateResultsDisplay: function () {
-        const resultsEl = document.getElementById('voteResults');
-        if (!resultsEl) return;
-
-        // Calcular total simbólico (no es real, es atmosférico)
-        const total = Object.values(this.state.voteCounts).reduce((a, b) => a + b, 0) || 1;
-
-        let resultsHTML = '<h3 class="text-amber mt-2">Respiración colectiva:</h3>';
-
-        this.config.options.forEach((option, index) => {
-            const count = this.state.voteCounts[index] || 0;
-            const percentage = Math.round((count / total) * 100);
-
-            // Barras de progreso visual
-            const barWidth = Math.max(10, percentage);
-
-            resultsHTML += `
-        <div class="mb-1">
-          <div class="text-mono" style="font-size: 0.85rem;">
-            ${option}: ${count}
-          </div>
-          <div style="background: #333; height: 4px; border-radius: 2px; margin-top: 2px;">
-            <div style="width: ${barWidth}%; height: 100%; background: var(--color-accent-green); border-radius: 2px;"></div>
-          </div>
-        </div>
-      `;
+            container.appendChild(card);
         });
-
-        resultsEl.innerHTML = resultsHTML;
     }
 };
 
@@ -524,8 +453,8 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     if (path.includes('rituales.html') || bodyId === 'rituales-page') {
-        RitualsModule.init();
-        console.log('Módulo de rituales activado');
+        ServiciosModule.init();
+        console.log('Módulo de servicios activado');
     }
 
     if (path.includes('archivo.html') || bodyId === 'archivo-page') {

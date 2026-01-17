@@ -267,26 +267,156 @@ p {
     font-style: italic;
 }
 
-/* --- PAGE: INDEX (HOME) --- */
-.neon-sign-container {
-    border: 4px solid #111;
-    padding: 3rem;
-    background: #000;
-    text-align: center;
+/* --- COMPONENT: NEO SIGN (NEW) --- */
+.sign-wrapper {
     position: relative;
-    margin-bottom: 3rem;
+    width: 18rem;
+    padding: 3rem 2rem;
+    border-radius: 1.4rem;
+    background: rgba(0, 0, 0, 0.4);
+    text-align: center;
+    box-shadow: 0 0 2.4rem rgba(0, 0, 0, 0.9), inset 0 0 1.4rem rgba(255, 255, 255, 0.05);
+    margin: 0 auto 3rem auto;
+    /* Centrado */
 }
 
-.neon-border-glow {
+/* Glow ambiental desde la pared */
+.sign-wrapper::before {
+    content: "";
     position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    border: 2px solid var(--neon-brand);
-    opacity: 0.3;
+    inset: -2rem;
+    background: radial-gradient(circle at center,
+            rgba(43, 182, 255, 0.18),
+            rgba(255, 43, 43, 0.12),
+            transparent 65%);
+    filter: blur(1.8rem);
+    z-index: -1;
     pointer-events: none;
-    box-shadow: 0 0 20px var(--neon-brand);
+}
+
+.neon-block {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin: 0.8rem 0;
+    line-height: 1;
+}
+
+.neon-internet {
+    color: var(--neon-brand);
+    font-size: 2.6rem;
+    text-shadow: 0 0 0.4rem var(--neon-brand), 0 0 0.9rem var(--neon-brand);
+}
+
+.neon-cafe {
+    color: var(--neon-success);
+    font-size: 2.2rem;
+    text-shadow: 0 0 0.4rem var(--neon-success), 0 0 0.9rem var(--neon-success);
+    animation: flickerCafe 3.5s infinite;
+}
+
+.neon-open {
+    color: var(--neon-info);
+    font-size: 2.3rem;
+    margin-top: 1.4rem;
+    text-shadow: 0 0 0.4rem var(--neon-info), 0 0 0.9rem var(--neon-info);
+}
+
+.neon-hours {
+    color: var(--neon-info);
+    font-size: 2rem;
+    text-shadow: 0 0 0.4rem var(--neon-info), 0 0 0.9rem var(--neon-info);
+    animation: flickerHours 4s infinite;
+}
+
+@keyframes flickerCafe {
+
+    0%,
+    18%,
+    22%,
+    25%,
+    53%,
+    100% {
+        opacity: 1;
+    }
+
+    20%,
+    24%,
+    55% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes flickerHours {
+
+    0%,
+    15%,
+    19%,
+    23%,
+    80%,
+    100% {
+        opacity: 1;
+    }
+
+    17%,
+    21%,
+    82% {
+        opacity: 0.25;
+    }
+}
+
+@keyframes flickerCafe {
+
+    0%,
+    18%,
+    22%,
+    25%,
+    53%,
+    100% {
+        opacity: 1;
+    }
+
+    20%,
+    24%,
+    55% {
+        opacity: 0.3;
+    }
+}
+
+@keyframes flickerHours {
+
+    0%,
+    15%,
+    19%,
+    23%,
+    80%,
+    100% {
+        opacity: 1;
+    }
+
+    17%,
+    21%,
+    82% {
+        opacity: 0.25;
+    }
+}
+
+@media (max-width: 480px) {
+    .neon-internet {
+        font-size: 2.1rem;
+    }
+
+    .neon-cafe {
+        font-size: 1.9rem;
+    }
+
+    .neon-open {
+        font-size: 2rem;
+    }
+
+    .neon-hours {
+        font-size: 1.7rem;
+    }
 }
 
 /* Nav Grid for Index */
